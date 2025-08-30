@@ -12,27 +12,6 @@ export const metadata: Metadata = {
     "principal amount",
     "future value",
   ],
-  openGraph: {
-    title: "Lumpsum Calculator - Calculate One-time Investment Returns",
-    description:
-      "Calculate returns on your lump sum investments with compound interest calculations.",
-    type: "website",
-    images: [
-      {
-        url: "/lumpsum/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "Lumpsum Calculator - Calculate One-time Investment Returns",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Lumpsum Calculator - Calculate One-time Investment Returns",
-    description:
-      "Calculate returns on your lump sum investments with compound interest calculations.",
-    images: ["/lumpsum/opengraph-image"],
-  },
 };
 
 export default function LumpsumLayout({
