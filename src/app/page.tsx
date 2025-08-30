@@ -22,6 +22,11 @@ export default function Home() {
                 CAGR Calculator
               </Button>
             </Link>
+            <Link href="/inflation" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto">
+                Inflation Calculator
+              </Button>
+            </Link>
           </div>
         </main>
       </div>

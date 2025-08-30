@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finance Calculator - SIP, Lumpsum & CAGR Calculators",
+  title: "Finance Calculator - SIP, Lumpsum, CAGR & Inflation Calculators",
   description:
-    "Calculate your investment returns with our comprehensive financial calculators. SIP Calculator, Lumpsum Calculator, and CAGR Calculator for smart investment planning.",
+    "Calculate your investment returns with our comprehensive financial calculators. SIP Calculator, Lumpsum Calculator, Inflation Calculator and CAGR Calculator for smart investment planning.",
   keywords: [
     "finance calculator",
     "SIP calculator",
@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     "CAGR calculator",
     "investment returns",
     "financial planning",
+    "inflation calculator",
   ],
 };
 
