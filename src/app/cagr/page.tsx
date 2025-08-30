@@ -51,8 +51,8 @@ export default function CAGRCalculator() {
     const invested = Math.min(numbers.initial, numbers.final);
     const gain = Math.max(numbers.final - invested, 0);
     return [
-      { name: "Invested ", value: invested, fill: "var(--color-invested)" },
-      { name: "Profit", value: gain, fill: "var(--color-current)" },
+      { name: "Invested ", value: invested, fill: "var(--chart-1)" },
+      { name: "Profit", value: gain, fill: "var(--chart-2)" },
     ];
   }, [numbers]);
 
@@ -165,6 +165,33 @@ export default function CAGRCalculator() {
                   />
                 </PieChart>
               </ChartContainer>
+
+              {chartData.length > 0 && (
+                <div className="flex flex-col gap-2 mt-4">
+                  {chartData.map((item) => (
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-4 h-4 rounded-sm"
+                          style={{ backgroundColor: item.fill }}
+                        />
+                        <span className="text-sm font-medium">
+                          {item.name.trim()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold">
+                        ₹
+                        {item.value.toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
