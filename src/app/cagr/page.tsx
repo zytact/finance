@@ -130,7 +130,9 @@ export default function CAGRCalculator() {
                     className={cn(
                       "text-lg font-bold",
                       cagr !== null
-                        ? "text-green-600"
+                        ? cagr < 0
+                          ? "text-red-600"
+                          : "text-green-600"
                         : "text-muted-foreground",
                     )}
                   >
