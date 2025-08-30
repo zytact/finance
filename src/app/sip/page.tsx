@@ -4,7 +4,6 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   type ChartConfig,
   ChartContainer,
@@ -207,7 +206,7 @@ export default function SIPCalculator() {
           Calculate your Systematic Investment Plan returns
         </p>
 
-        <div className="w-full max-w-4xl grid gap-6 md:grid-cols-2">
+        <div className="w-full max-w-4xl grid gap-12 md:grid-cols-2">
           <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
             <div className="space-y-4">
               <div>
@@ -439,11 +438,11 @@ export default function SIPCalculator() {
             </div>
           </div>
 
-          <Card className="w-full">
-            <CardHeader className="items-center pb-0">
-              <CardTitle>Investment Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 pb-6">
+          <div className="w-full">
+            <div className="items-center pb-0">
+              <h3 className="text-lg font-semibold">Investment Breakdown</h3>
+            </div>
+            <div className="flex-1 pb-6">
               <ChartContainer
                 config={chartConfig}
                 className="mx-auto aspect-square max-h-[280px]"
@@ -488,8 +487,8 @@ export default function SIPCalculator() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
     </div>
