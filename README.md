@@ -2,7 +2,7 @@
 
 A comprehensive web application for financial calculations and investment planning. Calculate returns for various investment scenarios including SIP, lumpsum investments, CAGR, and inflation adjustments.
 
-## 🚀 Features
+## Features
 
 - **SIP Calculator** - Calculate returns on Systematic Investment Plans
 - **Lumpsum Calculator** - Calculate returns on one-time investments
@@ -12,7 +12,7 @@ A comprehensive web application for financial calculations and investment planni
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 - **Real-time Calculations** - Instant results as you input values
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: Next.js 15 with App Router
 - **Frontend**: React 19
@@ -22,53 +22,64 @@ A comprehensive web application for financial calculations and investment planni
 - **Linting**: Biome
 - **Font**: Geist Sans & Geist Mono
 
-## 📦 Installation
+## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/zytact/finance.git
 cd finance
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Run the development server:
+
 ```bash
 pnpm dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📊 Available Calculators
+## Available Calculators
 
 ### SIP Calculator (`/sip`)
+
 Calculate potential returns from Systematic Investment Plans with customizable:
+
 - Monthly investment amount
 - Investment duration
 - Expected annual return rate
 
 ### Lumpsum Calculator (`/lumpsum`)
+
 Calculate returns from one-time investments with:
+
 - Principal investment amount
 - Investment duration
 - Expected annual return rate
 
 ### CAGR Calculator (`/cagr`)
+
 Calculate Compound Annual Growth Rate for investments:
+
 - Initial investment amount
 - Final investment value
 - Investment duration
 
 ### Inflation Calculator (`/inflation`)
+
 Adjust investment values for inflation:
+
 - Current investment amount
 - Expected inflation rate
 - Time period
 
-## 🛠️ Development
+## Development
 
 ### Available Scripts
 
@@ -81,11 +92,12 @@ Adjust investment values for inflation:
 ### Code Quality
 
 This project uses:
+
 - **Biome** for linting and formatting
 - **TypeScript** with strict mode enabled
 - **ESLint** rules for React and Next.js best practices
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
@@ -94,12 +106,6 @@ This project uses:
 5. Push to the branch: `git push origin feature/your-feature`
 6. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Made with ❤️ by [Arnab](https://zytact.com)
-- Built with [Next.js](https://nextjs.org)
-- UI components from [shadcn/ui](https://ui.shadcn.com)
