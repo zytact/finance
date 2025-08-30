@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 type Frequency = "monthly" | "weekly" | "quarterly" | "yearly" | "15-days";
@@ -41,6 +42,9 @@ export default function SIPCalculator() {
   const [paymentTiming, setPaymentTiming] = useState<"beginning" | "end">(
     "end",
   );
+  const [isStepUpEnabled, setIsStepUpEnabled] = useState<boolean>(false);
+  const [stepUpFrequency, setStepUpFrequency] = useState<Frequency>("yearly");
+  const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
 
   useEffect(() => {
     const principal = parseFloat(sipAmount);
@@ -55,17 +59,53 @@ export default function SIPCalculator() {
 
       let calculatedValue: number;
 
-      if (periodicRate === 0) {
-        // If no interest, just sum all payments
-        calculatedValue = principal * totalPeriods;
-      } else {
-        // Standard SIP formula (payments at end of period)
-        calculatedValue =
-          (principal * ((1 + periodicRate) ** totalPeriods - 1)) / periodicRate;
+      if (isStepUpEnabled) {
+        // Step-up SIP calculation
+        const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+        const stepUpPeriodsPerYear =
+          frequencyOptions.find((f) => f.value === stepUpFrequency)
+            ?.periodsPerYear || 1;
 
-        // If payments are at beginning of period, multiply by (1 + r)
-        if (paymentTiming === "beginning") {
-          calculatedValue *= 1 + periodicRate;
+        calculatedValue = 0;
+        let currentAmount = principal;
+
+        for (let period = 1; period <= totalPeriods; period++) {
+          // Calculate future value of this payment
+          if (periodicRate === 0) {
+            calculatedValue += currentAmount;
+          } else {
+            const futureValueOfPayment =
+              currentAmount *
+              (1 + periodicRate) **
+                (totalPeriods -
+                  period +
+                  (paymentTiming === "beginning" ? 1 : 0));
+            calculatedValue += futureValueOfPayment;
+          }
+
+          // Check if it's time to step up (every stepUpPeriodsPerYear periods)
+          if (
+            period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
+            period < totalPeriods
+          ) {
+            currentAmount *= 1 + stepUpPercent;
+          }
+        }
+      } else {
+        // Standard SIP calculation
+        if (periodicRate === 0) {
+          // If no interest, just sum all payments
+          calculatedValue = principal * totalPeriods;
+        } else {
+          // Standard SIP formula (payments at end of period)
+          calculatedValue =
+            (principal * ((1 + periodicRate) ** totalPeriods - 1)) /
+            periodicRate;
+
+          // If payments are at beginning of period, multiply by (1 + r)
+          if (paymentTiming === "beginning") {
+            calculatedValue *= 1 + periodicRate;
+          }
         }
       }
 
@@ -73,14 +113,51 @@ export default function SIPCalculator() {
     } else {
       setFutureValue(null);
     }
-  }, [sipAmount, frequency, duration, expectedReturn, paymentTiming]);
+  }, [
+    sipAmount,
+    frequency,
+    duration,
+    expectedReturn,
+    paymentTiming,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+  ]);
 
   const numbers = useMemo(() => {
     const principal = parseFloat(sipAmount);
     const periodsPerYear =
       frequencyOptions.find((f) => f.value === frequency)?.periodsPerYear || 12;
     const time = parseFloat(duration);
-    const totalInvested = principal * periodsPerYear * time;
+    let totalInvested: number;
+
+    if (isStepUpEnabled) {
+      // Calculate total invested for step-up SIP
+      const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+      const stepUpPeriodsPerYear =
+        frequencyOptions.find((f) => f.value === stepUpFrequency)
+          ?.periodsPerYear || 1;
+
+      totalInvested = 0;
+      let currentAmount = principal;
+      const totalPeriods = time * periodsPerYear;
+
+      for (let period = 1; period <= totalPeriods; period++) {
+        totalInvested += currentAmount;
+
+        // Check if it's time to step up
+        if (
+          period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
+          period < totalPeriods
+        ) {
+          currentAmount *= 1 + stepUpPercent;
+        }
+      }
+    } else {
+      // Standard SIP total invested
+      totalInvested = principal * periodsPerYear * time;
+    }
+
     const final = futureValue || 0;
 
     if (
@@ -93,7 +170,15 @@ export default function SIPCalculator() {
     }
     const profit = Math.max(final - totalInvested, 0);
     return { totalInvested, final, profit };
-  }, [sipAmount, frequency, duration, futureValue]);
+  }, [
+    sipAmount,
+    frequency,
+    duration,
+    futureValue,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+  ]);
 
   const chartData = useMemo(() => {
     if (numbers.totalInvested <= 0 && numbers.final <= 0)
@@ -253,6 +338,85 @@ export default function SIPCalculator() {
                   Most SIP calculators use "Beginning of Period" - try switching
                   if your results don't match
                 </p>
+              </div>
+
+              <div className="pt-2 border-t">
+                <div className="flex items-center justify-between mb-4">
+                  <label htmlFor="stepUpToggle" className="text-sm font-medium">
+                    Enable Step-up SIP
+                  </label>
+                  <Switch
+                    id="stepUpToggle"
+                    checked={isStepUpEnabled}
+                    onCheckedChange={setIsStepUpEnabled}
+                  />
+                </div>
+
+                {isStepUpEnabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="stepUpFrequency"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Step-up Frequency
+                      </label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between bg-background"
+                          >
+                            <span>
+                              {frequencyOptions.find(
+                                (f) => f.value === stepUpFrequency,
+                              )?.label || "Yearly"}
+                            </span>
+                            <ChevronDown className="h-4 w-4 opacity-50" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-full">
+                          <DropdownMenuLabel>
+                            Select Step-up Frequency
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            value={stepUpFrequency}
+                            onValueChange={(value) =>
+                              setStepUpFrequency(value as Frequency)
+                            }
+                          >
+                            {frequencyOptions.map((option) => (
+                              <DropdownMenuRadioItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="stepUpPercentage"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Step-up Percentage (%)
+                      </label>
+                      <input
+                        id="stepUpPercentage"
+                        type="number"
+                        value={stepUpPercentage}
+                        onChange={(e) => setStepUpPercentage(e.target.value)}
+                        placeholder="10"
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t">
