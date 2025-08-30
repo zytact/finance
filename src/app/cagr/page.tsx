@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
+import { useEffect, useMemo, useState } from "react";
+import { Pie, PieChart } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
 export default function CAGRCalculator() {
@@ -23,75 +30,143 @@ export default function CAGRCalculator() {
     }
   }, [investedAmount, currentAmount, years]);
 
+  const numbers = useMemo(() => {
+    const initial = parseFloat(investedAmount);
+    const final = parseFloat(currentAmount);
+    if (
+      !Number.isFinite(initial) ||
+      initial <= 0 ||
+      !Number.isFinite(final) ||
+      final <= 0
+    ) {
+      return { initial: 0, final: 0, gain: 0 };
+    }
+    const gain = Math.max(final - initial, 0);
+    return { initial, final, gain };
+  }, [investedAmount, currentAmount]);
+
+  const chartData = useMemo(() => {
+    if (numbers.initial <= 0 && numbers.final <= 0)
+      return [] as Array<{ name: string; value: number; fill: string }>;
+    const invested = Math.min(numbers.initial, numbers.final);
+    const gain = Math.max(numbers.final - invested, 0);
+    return [
+      { name: "Invested ", value: invested, fill: "var(--color-invested)" },
+      { name: "Profit", value: gain, fill: "var(--color-current)" },
+    ];
+  }, [numbers]);
+
+  const chartConfig: ChartConfig = {
+    invested: { label: "Invested", color: "var(--chart-1)" },
+    current: { label: "Profit", color: "var(--chart-2)" },
+  };
+
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
         <h1 className="text-4xl font-bold">CAGR Calculator</h1>
         <p className="text-muted-foreground">
           Calculate your Compound Annual Growth Rate
         </p>
 
-        <div className="w-full max-w-md p-6 border rounded-lg shadow-sm bg-card">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="initial"
-                className="block text-sm font-medium mb-1"
-              >
-                Invested Amount
-              </label>
-              <input
-                id="initial"
-                type="number"
-                value={investedAmount}
-                onChange={(e) => setInvestedAmount(e.target.value)}
-                placeholder="10000"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="final" className="block text-sm font-medium mb-1">
-                Current Amount
-              </label>
-              <input
-                id="final"
-                type="number"
-                value={currentAmount}
-                onChange={(e) => setCurrentAmount(e.target.value)}
-                placeholder="15000"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="years" className="block text-sm font-medium mb-1">
-                Time Period (Years)
-              </label>
-              <input
-                id="years"
-                type="number"
-                value={years}
-                onChange={(e) => setYears(e.target.value)}
-                placeholder="5"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">CAGR:</span>
-                <span
-                  className={cn(
-                    "text-lg font-bold",
-                    cagr !== null ? "text-green-600" : "text-muted-foreground",
-                  )}
+        <div className="w-full max-w-4xl grid gap-6 md:grid-cols-2">
+          <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="initial"
+                  className="block text-sm font-medium mb-1"
                 >
-                  {cagr !== null ? `${cagr.toFixed(2)}%` : "Enter values above"}
-                </span>
+                  Invested Amount
+                </label>
+                <input
+                  id="initial"
+                  type="number"
+                  value={investedAmount}
+                  onChange={(e) => setInvestedAmount(e.target.value)}
+                  placeholder="10000"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="final"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Current Amount
+                </label>
+                <input
+                  id="final"
+                  type="number"
+                  value={currentAmount}
+                  onChange={(e) => setCurrentAmount(e.target.value)}
+                  placeholder="15000"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="years"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Time Period (Years)
+                </label>
+                <input
+                  id="years"
+                  type="number"
+                  value={years}
+                  onChange={(e) => setYears(e.target.value)}
+                  placeholder="5"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">CAGR:</span>
+                  <span
+                    className={cn(
+                      "text-lg font-bold",
+                      cagr !== null
+                        ? "text-green-600"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {cagr !== null
+                      ? `${cagr.toFixed(2)}%`
+                      : "Enter values above"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+
+          <Card className="w-full">
+            <CardHeader className="items-center pb-0">
+              <CardTitle>Portfolio Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 pb-6">
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[280px]"
+              >
+                <PieChart>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent />}
+                  />
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    nameKey="name"
+                    stroke="0"
+                  />
+                </PieChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
