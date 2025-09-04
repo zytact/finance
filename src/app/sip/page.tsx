@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -33,7 +33,7 @@ const frequencyOptions = [
   { value: "15-days" as Frequency, label: "15 Days", periodsPerYear: 24 },
 ];
 
-export default function SIPCalculator() {
+function SIPCalculatorContent() {
   const searchParams = useSearchParams();
 
   const [sipAmount, setSipAmount] = useState<string>("");
@@ -596,5 +596,13 @@ export default function SIPCalculator() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SIPCalculator() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SIPCalculatorContent />
+    </Suspense>
   );
 }

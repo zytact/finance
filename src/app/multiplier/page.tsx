@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -35,7 +35,7 @@ const modeOptions = [
   },
 ];
 
-export default function MultiplierCalculator() {
+function MultiplierCalculatorContent() {
   const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<CalculationMode>("time");
@@ -443,5 +443,13 @@ export default function MultiplierCalculator() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function MultiplierCalculator() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MultiplierCalculatorContent />
+    </Suspense>
   );
 }

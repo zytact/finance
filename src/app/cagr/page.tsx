@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
-export default function CAGRCalculator() {
+function CAGRCalculatorContent() {
   const searchParams = useSearchParams();
 
   const [investedAmount, setInvestedAmount] = useState<string>("");
@@ -249,5 +249,13 @@ export default function CAGRCalculator() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function CAGRCalculator() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CAGRCalculatorContent />
+    </Suspense>
   );
 }
