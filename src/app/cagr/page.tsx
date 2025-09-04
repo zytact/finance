@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -12,10 +13,51 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function CAGRCalculator() {
+  const searchParams = useSearchParams();
+
   const [investedAmount, setInvestedAmount] = useState<string>("");
   const [currentAmount, setCurrentAmount] = useState<string>("");
   const [years, setYears] = useState<string>("");
   const [cagr, setCagr] = useState<number | null>(null);
+
+  useEffect(() => {
+    const initial = searchParams.get("initial");
+    const final = searchParams.get("final");
+    const yrs = searchParams.get("years");
+
+    if (initial && !Number.isNaN(Number(initial)) && Number(initial) > 0) {
+      setInvestedAmount(initial);
+    }
+    if (final && !Number.isNaN(Number(final)) && Number(final) > 0) {
+      setCurrentAmount(final);
+    }
+    if (yrs && !Number.isNaN(Number(yrs)) && Number(yrs) > 0) {
+      setYears(yrs);
+    }
+  }, [searchParams]);
+
+  const updateSearchParams = useCallback(
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "") {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
+
+      const newSearchString = newSearchParams.toString();
+      const currentSearchString = searchParams.toString();
+
+      if (newSearchString !== currentSearchString) {
+        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     const initial = parseFloat(investedAmount);
@@ -29,6 +71,14 @@ export default function CAGRCalculator() {
       setCagr(null);
     }
   }, [investedAmount, currentAmount, years]);
+
+  useEffect(() => {
+    updateSearchParams({
+      initial: investedAmount,
+      final: currentAmount,
+      years: years,
+    });
+  }, [investedAmount, currentAmount, years, updateSearchParams]);
 
   const numbers = useMemo(() => {
     const initial = parseFloat(investedAmount);

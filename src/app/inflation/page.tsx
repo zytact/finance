@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -12,12 +13,57 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function InflationCalculator() {
+  const searchParams = useSearchParams();
+
   const [presentAmount, setPresentAmount] = useState<string>("");
   const [inflationRate, setInflationRate] = useState<string>("");
   const [duration, setDuration] = useState<string>("");
   const [futurePurchasingPower, setFuturePurchasingPower] = useState<
     number | null
   >(null);
+
+  useEffect(() => {
+    const amount = searchParams.get("amount");
+    const inflation = searchParams.get("inflation");
+    const dur = searchParams.get("duration");
+
+    if (amount && !Number.isNaN(Number(amount)) && Number(amount) > 0) {
+      setPresentAmount(amount);
+    }
+    if (
+      inflation &&
+      !Number.isNaN(Number(inflation)) &&
+      Number(inflation) >= 0
+    ) {
+      setInflationRate(inflation);
+    }
+    if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
+      setDuration(dur);
+    }
+  }, [searchParams]);
+
+  const updateSearchParams = useCallback(
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "") {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
+
+      const newSearchString = newSearchParams.toString();
+      const currentSearchString = searchParams.toString();
+
+      if (newSearchString !== currentSearchString) {
+        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     const principal = parseFloat(presentAmount);
@@ -31,6 +77,14 @@ export default function InflationCalculator() {
       setFuturePurchasingPower(null);
     }
   }, [presentAmount, inflationRate, duration]);
+
+  useEffect(() => {
+    updateSearchParams({
+      amount: presentAmount,
+      inflation: inflationRate,
+      duration: duration,
+    });
+  }, [presentAmount, inflationRate, duration, updateSearchParams]);
 
   const numbers = useMemo(() => {
     const principal = parseFloat(presentAmount);

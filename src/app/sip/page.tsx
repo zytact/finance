@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -33,6 +34,8 @@ const frequencyOptions = [
 ];
 
 export default function SIPCalculator() {
+  const searchParams = useSearchParams();
+
   const [sipAmount, setSipAmount] = useState<string>("");
   const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [duration, setDuration] = useState<string>("");
@@ -44,6 +47,94 @@ export default function SIPCalculator() {
   const [isStepUpEnabled, setIsStepUpEnabled] = useState<boolean>(false);
   const [stepUpFrequency, setStepUpFrequency] = useState<Frequency>("yearly");
   const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
+
+  useEffect(() => {
+    const amount = searchParams.get("amount");
+    const freq = searchParams.get("frequency") as Frequency;
+    const dur = searchParams.get("duration");
+    const ret = searchParams.get("return");
+    const timing = searchParams.get("timing") as "beginning" | "end";
+    const stepUp = searchParams.get("stepUp");
+    const stepUpFreq = searchParams.get("stepUpFreq") as Frequency;
+    const stepUpPerc = searchParams.get("stepUpPerc");
+
+    if (amount && !Number.isNaN(Number(amount)) && Number(amount) > 0) {
+      setSipAmount(amount);
+    }
+    if (freq && frequencyOptions.some((f) => f.value === freq)) {
+      setFrequency(freq);
+    }
+    if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
+      setDuration(dur);
+    }
+    if (ret && !Number.isNaN(Number(ret)) && Number(ret) >= 0) {
+      setExpectedReturn(ret);
+    }
+    if (timing && (timing === "beginning" || timing === "end")) {
+      setPaymentTiming(timing);
+    }
+    if (stepUp) {
+      setIsStepUpEnabled(stepUp === "true");
+    }
+    if (stepUpFreq && frequencyOptions.some((f) => f.value === stepUpFreq)) {
+      setStepUpFrequency(stepUpFreq);
+    }
+    if (
+      stepUpPerc &&
+      !Number.isNaN(Number(stepUpPerc)) &&
+      Number(stepUpPerc) >= 0
+    ) {
+      setStepUpPercentage(stepUpPerc);
+    }
+    if (freq && frequencyOptions.some((f) => f.value === freq)) {
+      setFrequency(freq);
+    }
+    if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
+      setDuration(dur);
+    }
+    if (ret && !Number.isNaN(Number(ret)) && Number(ret) >= 0) {
+      setExpectedReturn(ret);
+    }
+    if (timing && (timing === "beginning" || timing === "end")) {
+      setPaymentTiming(timing);
+    }
+    if (stepUp) {
+      setIsStepUpEnabled(stepUp === "true");
+    }
+    if (stepUpFreq && frequencyOptions.some((f) => f.value === stepUpFreq)) {
+      setStepUpFrequency(stepUpFreq);
+    }
+    if (
+      stepUpPerc &&
+      !Number.isNaN(Number(stepUpPerc)) &&
+      Number(stepUpPerc) >= 0
+    ) {
+      setStepUpPercentage(stepUpPerc);
+    }
+  }, [searchParams]);
+
+  const updateSearchParams = useCallback(
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "" && value !== "false") {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
+
+      const newSearchString = newSearchParams.toString();
+      const currentSearchString = searchParams.toString();
+
+      if (newSearchString !== currentSearchString) {
+        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     const principal = parseFloat(sipAmount);
@@ -59,7 +150,6 @@ export default function SIPCalculator() {
       let calculatedValue: number;
 
       if (isStepUpEnabled) {
-        // Step-up SIP calculation
         const stepUpPercent = parseFloat(stepUpPercentage) / 100;
         const stepUpPeriodsPerYear =
           frequencyOptions.find((f) => f.value === stepUpFrequency)
@@ -69,7 +159,6 @@ export default function SIPCalculator() {
         let currentAmount = principal;
 
         for (let period = 1; period <= totalPeriods; period++) {
-          // Calculate future value of this payment
           if (periodicRate === 0) {
             calculatedValue += currentAmount;
           } else {
@@ -82,7 +171,6 @@ export default function SIPCalculator() {
             calculatedValue += futureValueOfPayment;
           }
 
-          // Check if it's time to step up (every stepUpPeriodsPerYear periods)
           if (
             period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
             period < totalPeriods
@@ -91,17 +179,13 @@ export default function SIPCalculator() {
           }
         }
       } else {
-        // Standard SIP calculation
         if (periodicRate === 0) {
-          // If no interest, just sum all payments
           calculatedValue = principal * totalPeriods;
         } else {
-          // Standard SIP formula (payments at end of period)
           calculatedValue =
             (principal * ((1 + periodicRate) ** totalPeriods - 1)) /
             periodicRate;
 
-          // If payments are at beginning of period, multiply by (1 + r)
           if (paymentTiming === "beginning") {
             calculatedValue *= 1 + periodicRate;
           }
@@ -123,6 +207,29 @@ export default function SIPCalculator() {
     stepUpPercentage,
   ]);
 
+  useEffect(() => {
+    updateSearchParams({
+      amount: sipAmount,
+      frequency: frequency,
+      duration: duration,
+      return: expectedReturn,
+      timing: paymentTiming,
+      stepUp: isStepUpEnabled.toString(),
+      stepUpFreq: stepUpFrequency,
+      stepUpPerc: stepUpPercentage,
+    });
+  }, [
+    sipAmount,
+    frequency,
+    duration,
+    expectedReturn,
+    paymentTiming,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+    updateSearchParams,
+  ]);
+
   const numbers = useMemo(() => {
     const principal = parseFloat(sipAmount);
     const periodsPerYear =
@@ -131,7 +238,6 @@ export default function SIPCalculator() {
     let totalInvested: number;
 
     if (isStepUpEnabled) {
-      // Calculate total invested for step-up SIP
       const stepUpPercent = parseFloat(stepUpPercentage) / 100;
       const stepUpPeriodsPerYear =
         frequencyOptions.find((f) => f.value === stepUpFrequency)
@@ -144,7 +250,6 @@ export default function SIPCalculator() {
       for (let period = 1; period <= totalPeriods; period++) {
         totalInvested += currentAmount;
 
-        // Check if it's time to step up
         if (
           period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
           period < totalPeriods
@@ -153,7 +258,6 @@ export default function SIPCalculator() {
         }
       }
     } else {
-      // Standard SIP total invested
       totalInvested = principal * periodsPerYear * time;
     }
 

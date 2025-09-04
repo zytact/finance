@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -35,6 +36,8 @@ const modeOptions = [
 ];
 
 export default function MultiplierCalculator() {
+  const searchParams = useSearchParams();
+
   const [mode, setMode] = useState<CalculationMode>("time");
   const [principal, setPrincipal] = useState<string>("");
   const [expectedReturn, setExpectedReturn] = useState<string>("");
@@ -44,6 +47,53 @@ export default function MultiplierCalculator() {
   const [calculatedMultiplier, setCalculatedMultiplier] = useState<
     number | null
   >(null);
+
+  useEffect(() => {
+    const mod = searchParams.get("mode") as CalculationMode;
+    const prin = searchParams.get("principal");
+    const ret = searchParams.get("return");
+    const mult = searchParams.get("multiplier");
+    const final = searchParams.get("final");
+
+    if (mod && (mod === "time" || mod === "multiplier")) {
+      setMode(mod);
+    }
+    if (prin && !Number.isNaN(Number(prin)) && Number(prin) > 0) {
+      setPrincipal(prin);
+    }
+    if (ret && !Number.isNaN(Number(ret)) && Number(ret) > 0) {
+      setExpectedReturn(ret);
+    }
+    if (mult && !Number.isNaN(Number(mult)) && Number(mult) > 1) {
+      setMultiplier(mult);
+    }
+    if (final && !Number.isNaN(Number(final)) && Number(final) > 0) {
+      setFinalAmount(final);
+    }
+  }, [searchParams]);
+
+  const updateSearchParams = useCallback(
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "") {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
+
+      const newSearchString = newSearchParams.toString();
+      const currentSearchString = searchParams.toString();
+
+      if (newSearchString !== currentSearchString) {
+        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     if (mode === "time") {
@@ -71,6 +121,23 @@ export default function MultiplierCalculator() {
       setTimeRequired(null);
     }
   }, [mode, principal, expectedReturn, multiplier, finalAmount]);
+
+  useEffect(() => {
+    updateSearchParams({
+      mode: mode,
+      principal: principal,
+      return: expectedReturn,
+      multiplier: multiplier,
+      final: finalAmount,
+    });
+  }, [
+    mode,
+    principal,
+    expectedReturn,
+    multiplier,
+    finalAmount,
+    updateSearchParams,
+  ]);
 
   const futureValue = useMemo(() => {
     if (mode === "time") {

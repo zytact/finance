@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -12,10 +13,51 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function LumpsumCalculator() {
+  const searchParams = useSearchParams();
+
   const [investedAmount, setInvestedAmount] = useState<string>("");
   const [duration, setDuration] = useState<string>("");
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [futureValue, setFutureValue] = useState<number | null>(null);
+
+  useEffect(() => {
+    const amount = searchParams.get("amount");
+    const dur = searchParams.get("duration");
+    const ret = searchParams.get("return");
+
+    if (amount && !Number.isNaN(Number(amount)) && Number(amount) > 0) {
+      setInvestedAmount(amount);
+    }
+    if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
+      setDuration(dur);
+    }
+    if (ret && !Number.isNaN(Number(ret)) && Number(ret) >= 0) {
+      setExpectedReturn(ret);
+    }
+  }, [searchParams]);
+
+  const updateSearchParams = useCallback(
+    (params: Record<string, string>) => {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "") {
+          newSearchParams.set(key, value);
+        } else {
+          newSearchParams.delete(key);
+        }
+      });
+
+      const newSearchString = newSearchParams.toString();
+      const currentSearchString = searchParams.toString();
+
+      if (newSearchString !== currentSearchString) {
+        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+      }
+    },
+    [searchParams],
+  );
 
   useEffect(() => {
     const principal = parseFloat(investedAmount);
@@ -29,6 +71,14 @@ export default function LumpsumCalculator() {
       setFutureValue(null);
     }
   }, [investedAmount, duration, expectedReturn]);
+
+  useEffect(() => {
+    updateSearchParams({
+      amount: investedAmount,
+      duration: duration,
+      return: expectedReturn,
+    });
+  }, [investedAmount, duration, expectedReturn, updateSearchParams]);
 
   const numbers = useMemo(() => {
     const principal = parseFloat(investedAmount);
