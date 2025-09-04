@@ -21,6 +21,7 @@ function InflationCalculatorContent() {
   const [futurePurchasingPower, setFuturePurchasingPower] = useState<
     number | null
   >(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     const amount = searchParams.get("amount");
@@ -40,6 +41,7 @@ function InflationCalculatorContent() {
     if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
       setDuration(dur);
     }
+    setInitialized(true);
   }, [searchParams]);
 
   const updateSearchParams = useCallback(
@@ -79,12 +81,13 @@ function InflationCalculatorContent() {
   }, [presentAmount, inflationRate, duration]);
 
   useEffect(() => {
+    if (!initialized) return;
     updateSearchParams({
       amount: presentAmount,
       inflation: inflationRate,
       duration: duration,
     });
-  }, [presentAmount, inflationRate, duration, updateSearchParams]);
+  }, [presentAmount, inflationRate, duration, updateSearchParams, initialized]);
 
   const numbers = useMemo(() => {
     const principal = parseFloat(presentAmount);

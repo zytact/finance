@@ -47,6 +47,7 @@ function MultiplierCalculatorContent() {
   const [calculatedMultiplier, setCalculatedMultiplier] = useState<
     number | null
   >(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     const mod = searchParams.get("mode") as CalculationMode;
@@ -70,6 +71,7 @@ function MultiplierCalculatorContent() {
     if (final && !Number.isNaN(Number(final)) && Number(final) > 0) {
       setFinalAmount(final);
     }
+    setInitialized(true);
   }, [searchParams]);
 
   const updateSearchParams = useCallback(
@@ -123,6 +125,7 @@ function MultiplierCalculatorContent() {
   }, [mode, principal, expectedReturn, multiplier, finalAmount]);
 
   useEffect(() => {
+    if (!initialized) return;
     updateSearchParams({
       mode: mode,
       principal: principal,
@@ -137,6 +140,7 @@ function MultiplierCalculatorContent() {
     multiplier,
     finalAmount,
     updateSearchParams,
+    initialized,
   ]);
 
   const futureValue = useMemo(() => {

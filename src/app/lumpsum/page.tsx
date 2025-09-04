@@ -19,6 +19,7 @@ function LumpsumCalculatorContent() {
   const [duration, setDuration] = useState<string>("");
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [futureValue, setFutureValue] = useState<number | null>(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     const amount = searchParams.get("amount");
@@ -34,6 +35,7 @@ function LumpsumCalculatorContent() {
     if (ret && !Number.isNaN(Number(ret)) && Number(ret) >= 0) {
       setExpectedReturn(ret);
     }
+    setInitialized(true);
   }, [searchParams]);
 
   const updateSearchParams = useCallback(
@@ -73,12 +75,19 @@ function LumpsumCalculatorContent() {
   }, [investedAmount, duration, expectedReturn]);
 
   useEffect(() => {
+    if (!initialized) return;
     updateSearchParams({
       amount: investedAmount,
       duration: duration,
       return: expectedReturn,
     });
-  }, [investedAmount, duration, expectedReturn, updateSearchParams]);
+  }, [
+    investedAmount,
+    duration,
+    expectedReturn,
+    updateSearchParams,
+    initialized,
+  ]);
 
   const numbers = useMemo(() => {
     const principal = parseFloat(investedAmount);

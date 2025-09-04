@@ -47,6 +47,7 @@ function SIPCalculatorContent() {
   const [isStepUpEnabled, setIsStepUpEnabled] = useState<boolean>(false);
   const [stepUpFrequency, setStepUpFrequency] = useState<Frequency>("yearly");
   const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     const amount = searchParams.get("amount");
@@ -86,31 +87,8 @@ function SIPCalculatorContent() {
     ) {
       setStepUpPercentage(stepUpPerc);
     }
-    if (freq && frequencyOptions.some((f) => f.value === freq)) {
-      setFrequency(freq);
-    }
-    if (dur && !Number.isNaN(Number(dur)) && Number(dur) > 0) {
-      setDuration(dur);
-    }
-    if (ret && !Number.isNaN(Number(ret)) && Number(ret) >= 0) {
-      setExpectedReturn(ret);
-    }
-    if (timing && (timing === "beginning" || timing === "end")) {
-      setPaymentTiming(timing);
-    }
-    if (stepUp) {
-      setIsStepUpEnabled(stepUp === "true");
-    }
-    if (stepUpFreq && frequencyOptions.some((f) => f.value === stepUpFreq)) {
-      setStepUpFrequency(stepUpFreq);
-    }
-    if (
-      stepUpPerc &&
-      !Number.isNaN(Number(stepUpPerc)) &&
-      Number(stepUpPerc) >= 0
-    ) {
-      setStepUpPercentage(stepUpPerc);
-    }
+
+    setInitialized(true);
   }, [searchParams]);
 
   const updateSearchParams = useCallback(
@@ -208,6 +186,7 @@ function SIPCalculatorContent() {
   ]);
 
   useEffect(() => {
+    if (!initialized) return;
     updateSearchParams({
       amount: sipAmount,
       frequency: frequency,
@@ -228,6 +207,7 @@ function SIPCalculatorContent() {
     stepUpFrequency,
     stepUpPercentage,
     updateSearchParams,
+    initialized,
   ]);
 
   const numbers = useMemo(() => {

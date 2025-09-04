@@ -19,6 +19,7 @@ function CAGRCalculatorContent() {
   const [currentAmount, setCurrentAmount] = useState<string>("");
   const [years, setYears] = useState<string>("");
   const [cagr, setCagr] = useState<number | null>(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     const initial = searchParams.get("initial");
@@ -34,6 +35,7 @@ function CAGRCalculatorContent() {
     if (yrs && !Number.isNaN(Number(yrs)) && Number(yrs) > 0) {
       setYears(yrs);
     }
+    setInitialized(true);
   }, [searchParams]);
 
   const updateSearchParams = useCallback(
@@ -73,12 +75,13 @@ function CAGRCalculatorContent() {
   }, [investedAmount, currentAmount, years]);
 
   useEffect(() => {
+    if (!initialized) return;
     updateSearchParams({
       initial: investedAmount,
       final: currentAmount,
       years: years,
     });
-  }, [investedAmount, currentAmount, years, updateSearchParams]);
+  }, [investedAmount, currentAmount, years, updateSearchParams, initialized]);
 
   const numbers = useMemo(() => {
     const initial = parseFloat(investedAmount);
