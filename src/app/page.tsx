@@ -27,6 +27,11 @@ export default function Home() {
                 Inflation Calculator
               </Button>
             </Link>
+            <Link href="/multiplier" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto">
+                Multiplier Calculator
+              </Button>
+            </Link>
           </div>
         </main>
       </div>
