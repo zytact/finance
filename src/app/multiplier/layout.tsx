@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Multiplier Calculator - Calculate Time to Double/Triple Your Money",
   description:
-    "Calculate how long it takes to double, triple, or multiply your investment by any factor using compound interest. Plan your investment growth timeline.",
+    "Calculate how long it takes to double, triple, or multiply your investment by any factor using compound interest, or find the multiplier between two amounts. Plan your investment growth timeline.",
   keywords: [
     "multiplier calculator",
     "doubling time",
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "money multiplier",
     "investment timeline",
     "future value",
+    "growth calculator",
   ],
 };
 

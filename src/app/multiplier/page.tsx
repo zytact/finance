@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Pie, PieChart } from "recharts";
 
@@ -9,32 +10,77 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
+type CalculationMode = "time" | "multiplier";
+
+const modeOptions = [
+  {
+    value: "time" as CalculationMode,
+    label: "Calculate Time to Reach Multiplier",
+  },
+  {
+    value: "multiplier" as CalculationMode,
+    label: "Calculate Multiplier from Amounts",
+  },
+];
+
 export default function MultiplierCalculator() {
+  const [mode, setMode] = useState<CalculationMode>("time");
   const [principal, setPrincipal] = useState<string>("");
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [multiplier, setMultiplier] = useState<string>("");
+  const [finalAmount, setFinalAmount] = useState<string>("");
   const [timeRequired, setTimeRequired] = useState<number | null>(null);
+  const [calculatedMultiplier, setCalculatedMultiplier] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
-    const p = parseFloat(principal);
-    const r = parseFloat(expectedReturn);
-    const m = parseFloat(multiplier);
+    if (mode === "time") {
+      const p = parseFloat(principal);
+      const r = parseFloat(expectedReturn);
+      const m = parseFloat(multiplier);
 
-    if (p > 0 && r > 0 && m > 1) {
-      const calculatedTime = Math.log(m) / Math.log(1 + r / 100);
-      setTimeRequired(calculatedTime);
+      if (p > 0 && r > 0 && m > 1) {
+        const calculatedTime = Math.log(m) / Math.log(1 + r / 100);
+        setTimeRequired(calculatedTime);
+      } else {
+        setTimeRequired(null);
+      }
+      setCalculatedMultiplier(null);
     } else {
+      const p = parseFloat(principal);
+      const f = parseFloat(finalAmount);
+
+      if (p > 0 && f > p) {
+        const calculatedMult = f / p;
+        setCalculatedMultiplier(calculatedMult);
+      } else {
+        setCalculatedMultiplier(null);
+      }
       setTimeRequired(null);
     }
-  }, [principal, expectedReturn, multiplier]);
+  }, [mode, principal, expectedReturn, multiplier, finalAmount]);
 
   const futureValue = useMemo(() => {
-    const p = parseFloat(principal);
-    const m = parseFloat(multiplier);
-    return p > 0 && m > 1 ? p * m : 0;
-  }, [principal, multiplier]);
+    if (mode === "time") {
+      const p = parseFloat(principal);
+      const m = parseFloat(multiplier);
+      return p > 0 && m > 1 ? p * m : 0;
+    } else {
+      return parseFloat(finalAmount) || 0;
+    }
+  }, [mode, principal, multiplier, finalAmount]);
 
   const numbers = useMemo(() => {
     const p = parseFloat(principal);
@@ -52,10 +98,18 @@ export default function MultiplierCalculator() {
     const invested = numbers.principal;
     const profit = numbers.profit;
     return [
-      { name: "Initial ", value: invested, fill: "var(--chart-1)" },
-      { name: "Growth", value: profit, fill: "var(--chart-2)" },
+      {
+        name: mode === "time" ? "Initial " : "Initial Amount",
+        value: invested,
+        fill: "var(--chart-1)",
+      },
+      {
+        name: mode === "time" ? "Growth" : "Final Amount",
+        value: profit,
+        fill: "var(--chart-2)",
+      },
     ];
-  }, [numbers]);
+  }, [numbers, mode]);
 
   const chartConfig: ChartConfig = {
     initial: { label: "Initial Amount", color: "var(--chart-1)" },
@@ -67,12 +121,57 @@ export default function MultiplierCalculator() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
         <h1 className="text-4xl font-bold">Multiplier Calculator</h1>
         <p className="text-muted-foreground">
-          Calculate how long it takes to multiply your investment
+          Calculate time to reach a multiplier or find the multiplier between
+          two amounts
         </p>
 
         <div className="w-full max-w-4xl grid gap-12 md:grid-cols-2">
           <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
             <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="mode"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Calculation Mode
+                </label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between bg-background"
+                    >
+                      <span>
+                        {modeOptions.find((m) => m.value === mode)?.label ||
+                          "Calculate Time to Reach Multiplier"}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-full">
+                    <DropdownMenuLabel>
+                      Select Calculation Mode
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={mode}
+                      onValueChange={(value) =>
+                        setMode(value as CalculationMode)
+                      }
+                    >
+                      {modeOptions.map((option) => (
+                        <DropdownMenuRadioItem
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
               <div>
                 <label
                   htmlFor="principal"
@@ -90,80 +189,142 @@ export default function MultiplierCalculator() {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="return"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Expected Annual Return (%)
-                </label>
-                <input
-                  id="return"
-                  type="number"
-                  value={expectedReturn}
-                  onChange={(e) => setExpectedReturn(e.target.value)}
-                  placeholder="10"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+              {mode === "time" ? (
+                <>
+                  <div>
+                    <label
+                      htmlFor="return"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Expected Annual Return (%)
+                    </label>
+                    <input
+                      id="return"
+                      type="number"
+                      value={expectedReturn}
+                      onChange={(e) => setExpectedReturn(e.target.value)}
+                      placeholder="10"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
 
-              <div>
-                <label
-                  htmlFor="multiplier"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Multiplier (e.g., 2 for double, 3 for triple)
-                </label>
-                <input
-                  id="multiplier"
-                  type="number"
-                  value={multiplier}
-                  onChange={(e) => setMultiplier(e.target.value)}
-                  placeholder="2"
-                  min="1.1"
-                  step="0.1"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+                  <div>
+                    <label
+                      htmlFor="multiplier"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Multiplier (e.g., 2 for double, 3 for triple)
+                    </label>
+                    <input
+                      id="multiplier"
+                      type="number"
+                      value={multiplier}
+                      onChange={(e) => setMultiplier(e.target.value)}
+                      placeholder="2"
+                      min="1.1"
+                      step="0.1"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label
+                    htmlFor="finalAmount"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Final Amount
+                  </label>
+                  <input
+                    id="finalAmount"
+                    type="number"
+                    value={finalAmount}
+                    onChange={(e) => setFinalAmount(e.target.value)}
+                    placeholder="20000"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              )}
 
               <div className="pt-4 border-t">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Time Required:</span>
-                  <span
-                    className={cn(
-                      "text-lg font-bold",
-                      timeRequired !== null
-                        ? "text-green-600"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {timeRequired !== null
-                      ? `${timeRequired.toFixed(2)} years`
-                      : "Enter values above"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Future Value:</span>
-                  <span
-                    className={cn(
-                      "text-lg font-bold",
-                      futureValue > 0
-                        ? "text-blue-600"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {futureValue > 0
-                      ? `₹${futureValue.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
-                      : "Enter values above"}
-                  </span>
-                </div>
+                {mode === "time" ? (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
+                        Time Required:
+                      </span>
+                      <span
+                        className={cn(
+                          "text-lg font-bold",
+                          timeRequired !== null
+                            ? "text-green-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {timeRequired !== null
+                          ? `${timeRequired.toFixed(2)} years`
+                          : "Enter values above"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Future Value:</span>
+                      <span
+                        className={cn(
+                          "text-lg font-bold",
+                          futureValue > 0
+                            ? "text-blue-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {futureValue > 0
+                          ? `₹${futureValue.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+                          : "Enter values above"}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Multiplier:</span>
+                      <span
+                        className={cn(
+                          "text-lg font-bold",
+                          calculatedMultiplier !== null
+                            ? "text-green-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {calculatedMultiplier !== null
+                          ? `${calculatedMultiplier.toFixed(2)}x`
+                          : "Enter values above"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Growth:</span>
+                      <span
+                        className={cn(
+                          "text-lg font-bold",
+                          calculatedMultiplier !== null
+                            ? "text-blue-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {calculatedMultiplier !== null
+                          ? `₹${(futureValue - parseFloat(principal)).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+                          : "Enter values above"}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <div className="w-full">
             <div className="items-center pb-0">
-              <h3 className="text-lg font-semibold">Growth Breakdown</h3>
+              <h3 className="text-lg font-semibold">
+                {mode === "time" ? "Growth Breakdown" : "Investment Breakdown"}
+              </h3>
             </div>
             <div className="flex-1 pb-6">
               <ChartContainer
