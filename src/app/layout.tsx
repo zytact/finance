@@ -31,8 +31,8 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#4de8e8" },
-    { media: "(prefers-color-scheme: dark)", color: "#4de8e8" },
+    { media: "(prefers-color-scheme: light)", color: "#1c9cf0" },
+    { media: "(prefers-color-scheme: dark)", color: "#1c9cf0" },
   ],
 };
 
@@ -58,7 +58,7 @@ export default function RootLayout({
           {children}
           <footer className="mt-auto p-4 text-center text-sm text-muted-foreground">
             <p>
-              Made with love ❤️ by{" "}
+              Made with love ❤ by{" "}
               <a
                 href="https://zytact.com"
                 target="_blank"
