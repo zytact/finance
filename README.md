@@ -4,11 +4,13 @@ A comprehensive web application for financial calculations and investment planni
 
 ## Features
 
-- **SIP Calculator** - Calculate returns on Systematic Investment Plans
+- **SIP Calculator** - Calculate returns on Systematic Investment Plans with step-up options
 - **Lumpsum Calculator** - Calculate returns on one-time investments
 - **CAGR Calculator** - Calculate Compound Annual Growth Rate
 - **Inflation Calculator** - Adjust investment values for inflation
-- **Dark/Light Theme** - Toggle between themes for better user experience
+- **Multiplier Calculator** - Calculate time to reach investment multipliers or find multipliers between amounts
+- **URL Parameter Support** - Share calculator states via shareable URLs
+- **Dark/Light/System Theme** - Toggle between themes including system preference
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 - **Real-time Calculations** - Instant results as you input values
 
@@ -51,9 +53,11 @@ pnpm dev
 
 Calculate potential returns from Systematic Investment Plans with customizable:
 
-- Monthly investment amount
+- Monthly/Weekly/Quarterly/Yearly/15-day investment frequency
 - Investment duration
 - Expected annual return rate
+- Payment timing (beginning or end of period)
+- Step-up SIP functionality (increasing investment amounts over time)
 
 ### Lumpsum Calculator (`/lumpsum`)
 
@@ -78,6 +82,14 @@ Adjust investment values for inflation:
 - Current investment amount
 - Expected inflation rate
 - Time period
+
+### Multiplier Calculator (`/multiplier`)
+
+Calculate investment multipliers and growth timelines:
+
+- Calculate time to reach a specific multiplier
+- Calculate multiplier between two amounts
+- Support for URL parameters to share calculations
 
 ## Development
 
