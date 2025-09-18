@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="font-sans relative min-h-screen">
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 pb-16 gap-12 sm:p-20 sm:gap-16">
-        <main className="flex flex-col gap-8 sm:gap-[32px] items-center">
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-4 items-center w-full max-w-sm sm:max-w-none">
+    <div className="relative min-h-screen font-sans">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-12 p-4 pb-16 sm:gap-16 sm:p-20">
+        <main className="flex flex-col items-center gap-8 sm:gap-[32px]">
+          <div className="flex w-full max-w-sm flex-col items-center gap-4 sm:max-w-none sm:flex-row sm:gap-4">
             <Link href="/sip" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto">
                 SIP Calculator
