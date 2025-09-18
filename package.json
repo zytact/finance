@@ -7,6 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
+    "fix": "biome lint --write",
+    "unsafe": "biome lint --write --unsafe",
     "format": "biome format --write",
     "prepare": "husky"
   },

@@ -283,20 +283,20 @@ function SIPCalculatorContent() {
     frequencyOptions.find((f) => f.value === frequency)?.label || "Monthly";
 
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-        <h1 className="text-4xl font-bold">SIP Calculator</h1>
+    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+      <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+        <h1 className="font-bold text-4xl">SIP Calculator</h1>
         <p className="text-muted-foreground">
           Calculate your Systematic Investment Plan returns
         </p>
 
-        <div className="w-full max-w-4xl grid gap-12 md:grid-cols-2">
-          <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
+        <div className="grid w-full max-w-4xl gap-12 md:grid-cols-2">
+          <div className="w-full rounded-lg border bg-card p-6 shadow-sm">
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="sipAmount"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   SIP Amount
                 </label>
@@ -306,14 +306,14 @@ function SIPCalculatorContent() {
                   value={sipAmount}
                   onChange={(e) => setSipAmount(e.target.value)}
                   placeholder="5000"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="frequency"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Investment Frequency
                 </label>
@@ -321,7 +321,7 @@ function SIPCalculatorContent() {
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between bg-background"
+                      className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <span>{selectedFrequencyLabel}</span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
@@ -352,7 +352,7 @@ function SIPCalculatorContent() {
               <div>
                 <label
                   htmlFor="duration"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Duration of Investment (Years)
                 </label>
@@ -362,14 +362,14 @@ function SIPCalculatorContent() {
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="5"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="return"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Expected Annual Return (%)
                 </label>
@@ -379,14 +379,14 @@ function SIPCalculatorContent() {
                   value={expectedReturn}
                   onChange={(e) => setExpectedReturn(e.target.value)}
                   placeholder="10"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="paymentTimingEnd"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Payment Timing
                 </label>
@@ -396,9 +396,9 @@ function SIPCalculatorContent() {
                     type="button"
                     onClick={() => setPaymentTiming("end")}
                     className={cn(
-                      "px-3 py-2 rounded-md text-sm border transition-colors",
+                      "rounded-md border px-3 py-2 text-sm transition-colors",
                       paymentTiming === "end"
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "border-primary bg-primary text-primary-foreground"
                         : "bg-background hover:bg-accent",
                     )}
                   >
@@ -408,24 +408,24 @@ function SIPCalculatorContent() {
                     type="button"
                     onClick={() => setPaymentTiming("beginning")}
                     className={cn(
-                      "px-3 py-2 rounded-md text-sm border transition-colors",
+                      "rounded-md border px-3 py-2 text-sm transition-colors",
                       paymentTiming === "beginning"
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "border-primary bg-primary text-primary-foreground"
                         : "bg-background hover:bg-accent",
                     )}
                   >
                     Beginning of Period
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-muted-foreground text-xs">
                   Most SIP calculators use "Beginning of Period" - try switching
                   if your results don't match
                 </p>
               </div>
 
-              <div className="pt-2 border-t">
-                <div className="flex items-center justify-between mb-4">
-                  <label htmlFor="stepUpToggle" className="text-sm font-medium">
+              <div className="border-t pt-2">
+                <div className="mb-4 flex items-center justify-between">
+                  <label htmlFor="stepUpToggle" className="font-medium text-sm">
                     Enable Step-up SIP
                   </label>
                   <Switch
@@ -440,7 +440,7 @@ function SIPCalculatorContent() {
                     <div>
                       <label
                         htmlFor="stepUpFrequency"
-                        className="block text-sm font-medium mb-1"
+                        className="mb-1 block font-medium text-sm"
                       >
                         Step-up Frequency
                       </label>
@@ -448,7 +448,7 @@ function SIPCalculatorContent() {
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
-                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between bg-background"
+                            className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                           >
                             <span>
                               {frequencyOptions.find(
@@ -485,7 +485,7 @@ function SIPCalculatorContent() {
                     <div>
                       <label
                         htmlFor="stepUpPercentage"
-                        className="block text-sm font-medium mb-1"
+                        className="mb-1 block font-medium text-sm"
                       >
                         Step-up Percentage (%)
                       </label>
@@ -495,19 +495,19 @@ function SIPCalculatorContent() {
                         value={stepUpPercentage}
                         onChange={(e) => setStepUpPercentage(e.target.value)}
                         placeholder="10"
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="pt-4 border-t">
+              <div className="border-t pt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Future Value:</span>
+                  <span className="font-medium text-sm">Future Value:</span>
                   <span
                     className={cn(
-                      "text-lg font-bold",
+                      "font-bold text-lg",
                       futureValue !== null
                         ? "text-green-600"
                         : "text-muted-foreground",
@@ -524,7 +524,7 @@ function SIPCalculatorContent() {
 
           <div className="w-full">
             <div className="items-center pb-0">
-              <h3 className="text-lg font-semibold">Investment Breakdown</h3>
+              <h3 className="font-semibold text-lg">Investment Breakdown</h3>
             </div>
             <div className="flex-1 pb-6">
               <ChartContainer
@@ -546,7 +546,7 @@ function SIPCalculatorContent() {
               </ChartContainer>
 
               {chartData.length > 0 && (
-                <div className="flex flex-col gap-2 mt-4">
+                <div className="mt-4 flex flex-col gap-2">
                   {chartData.map((item) => (
                     <div
                       key={item.name}
@@ -554,14 +554,14 @@ function SIPCalculatorContent() {
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-4 h-4 rounded-sm"
+                          className="h-4 w-4 rounded-sm"
                           style={{ backgroundColor: item.fill }}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="font-medium text-sm">
                           {item.name.trim()}
                         </span>
                       </div>
-                      <span className="text-sm font-bold">
+                      <span className="font-bold text-sm">
                         ₹
                         {item.value.toLocaleString("en-IN", {
                           maximumFractionDigits: 2,
@@ -583,9 +583,9 @@ export default function SIPCalculator() {
   return (
     <Suspense
       fallback={
-        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-          <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-            <h1 className="text-4xl font-bold">SIP Calculator</h1>
+        <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+          <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+            <h1 className="font-bold text-4xl">SIP Calculator</h1>
             <p className="text-muted-foreground">Loading...</p>
           </main>
         </div>

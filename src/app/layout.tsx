@@ -58,14 +58,14 @@ export default function RootLayout({
             <ThemeToggle />
           </header>
           {children}
-          <footer className="mt-auto p-4 text-center text-sm text-muted-foreground">
+          <footer className="mt-auto p-4 text-center text-muted-foreground text-sm">
             <p>
               Made with love ❤ by{" "}
               <a
                 href="https://zytact.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
+                className="transition-colors hover:text-foreground"
               >
                 Arnab
               </a>
@@ -75,14 +75,14 @@ export default function RootLayout({
                 href="https://github.com/zytact/finance"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
               >
                 <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
                   fill="currentColor"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   role="img"
                   aria-label="GitHub"
                 >

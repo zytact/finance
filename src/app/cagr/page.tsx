@@ -115,20 +115,20 @@ function CAGRCalculatorContent() {
   };
 
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-        <h1 className="text-4xl font-bold">CAGR Calculator</h1>
+    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+      <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+        <h1 className="font-bold text-4xl">CAGR Calculator</h1>
         <p className="text-muted-foreground">
           Calculate your Compound Annual Growth Rate
         </p>
 
-        <div className="w-full max-w-4xl grid gap-12 md:grid-cols-2">
-          <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
+        <div className="grid w-full max-w-4xl gap-12 md:grid-cols-2">
+          <div className="w-full rounded-lg border bg-card p-6 shadow-sm">
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="initial"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Invested Amount
                 </label>
@@ -138,14 +138,14 @@ function CAGRCalculatorContent() {
                   value={investedAmount}
                   onChange={(e) => setInvestedAmount(e.target.value)}
                   placeholder="10000"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="final"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Current Amount
                 </label>
@@ -155,14 +155,14 @@ function CAGRCalculatorContent() {
                   value={currentAmount}
                   onChange={(e) => setCurrentAmount(e.target.value)}
                   placeholder="15000"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="years"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Time Period (Years)
                 </label>
@@ -172,16 +172,16 @@ function CAGRCalculatorContent() {
                   value={years}
                   onChange={(e) => setYears(e.target.value)}
                   placeholder="5"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
-              <div className="pt-4 border-t">
+              <div className="border-t pt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">CAGR:</span>
+                  <span className="font-medium text-sm">CAGR:</span>
                   <span
                     className={cn(
-                      "text-lg font-bold",
+                      "font-bold text-lg",
                       cagr !== null
                         ? cagr < 0
                           ? "text-red-600"
@@ -200,7 +200,7 @@ function CAGRCalculatorContent() {
 
           <div className="w-full">
             <div className="items-center pb-0">
-              <h3 className="text-lg font-semibold">Portfolio Breakdown</h3>
+              <h3 className="font-semibold text-lg">Portfolio Breakdown</h3>
             </div>
             <div className="flex-1 pb-6">
               <ChartContainer
@@ -222,7 +222,7 @@ function CAGRCalculatorContent() {
               </ChartContainer>
 
               {chartData.length > 0 && (
-                <div className="flex flex-col gap-2 mt-4">
+                <div className="mt-4 flex flex-col gap-2">
                   {chartData.map((item) => (
                     <div
                       key={item.name}
@@ -230,14 +230,14 @@ function CAGRCalculatorContent() {
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-4 h-4 rounded-sm"
+                          className="h-4 w-4 rounded-sm"
                           style={{ backgroundColor: item.fill }}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="font-medium text-sm">
                           {item.name.trim()}
                         </span>
                       </div>
-                      <span className="text-sm font-bold">
+                      <span className="font-bold text-sm">
                         ₹
                         {item.value.toLocaleString("en-IN", {
                           maximumFractionDigits: 2,
@@ -259,9 +259,9 @@ export default function CAGRCalculator() {
   return (
     <Suspense
       fallback={
-        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-          <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-            <h1 className="text-4xl font-bold">CAGR Calculator</h1>
+        <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+          <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+            <h1 className="font-bold text-4xl">CAGR Calculator</h1>
             <p className="text-muted-foreground">Loading...</p>
           </main>
         </div>

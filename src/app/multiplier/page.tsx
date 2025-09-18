@@ -188,21 +188,21 @@ function MultiplierCalculatorContent() {
   };
 
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-        <h1 className="text-4xl font-bold">Multiplier Calculator</h1>
+    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+      <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+        <h1 className="font-bold text-4xl">Multiplier Calculator</h1>
         <p className="text-muted-foreground">
           Calculate time to reach a multiplier or find the multiplier between
           two amounts
         </p>
 
-        <div className="w-full max-w-4xl grid gap-12 md:grid-cols-2">
-          <div className="w-full p-6 border rounded-lg shadow-sm bg-card">
+        <div className="grid w-full max-w-4xl gap-12 md:grid-cols-2">
+          <div className="w-full rounded-lg border bg-card p-6 shadow-sm">
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="mode"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Calculation Mode
                 </label>
@@ -210,7 +210,7 @@ function MultiplierCalculatorContent() {
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between bg-background"
+                      className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <span>
                         {modeOptions.find((m) => m.value === mode)?.label ||
@@ -246,7 +246,7 @@ function MultiplierCalculatorContent() {
               <div>
                 <label
                   htmlFor="principal"
-                  className="block text-sm font-medium mb-1"
+                  className="mb-1 block font-medium text-sm"
                 >
                   Initial Amount
                 </label>
@@ -256,7 +256,7 @@ function MultiplierCalculatorContent() {
                   value={principal}
                   onChange={(e) => setPrincipal(e.target.value)}
                   placeholder="10000"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
@@ -265,7 +265,7 @@ function MultiplierCalculatorContent() {
                   <div>
                     <label
                       htmlFor="return"
-                      className="block text-sm font-medium mb-1"
+                      className="mb-1 block font-medium text-sm"
                     >
                       Expected Annual Return (%)
                     </label>
@@ -275,14 +275,14 @@ function MultiplierCalculatorContent() {
                       value={expectedReturn}
                       onChange={(e) => setExpectedReturn(e.target.value)}
                       placeholder="10"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="multiplier"
-                      className="block text-sm font-medium mb-1"
+                      className="mb-1 block font-medium text-sm"
                     >
                       Multiplier (e.g., 2 for double, 3 for triple)
                     </label>
@@ -294,7 +294,7 @@ function MultiplierCalculatorContent() {
                       placeholder="2"
                       min="1.1"
                       step="0.1"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </>
@@ -302,7 +302,7 @@ function MultiplierCalculatorContent() {
                 <div>
                   <label
                     htmlFor="finalAmount"
-                    className="block text-sm font-medium mb-1"
+                    className="mb-1 block font-medium text-sm"
                   >
                     Final Amount
                   </label>
@@ -312,21 +312,21 @@ function MultiplierCalculatorContent() {
                     value={finalAmount}
                     onChange={(e) => setFinalAmount(e.target.value)}
                     placeholder="20000"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
               )}
 
-              <div className="pt-4 border-t">
+              <div className="border-t pt-4">
                 {mode === "time" ? (
                   <>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-medium text-sm">
                         Time Required:
                       </span>
                       <span
                         className={cn(
-                          "text-lg font-bold",
+                          "font-bold text-lg",
                           timeRequired !== null
                             ? "text-green-600"
                             : "text-muted-foreground",
@@ -338,10 +338,10 @@ function MultiplierCalculatorContent() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Future Value:</span>
+                      <span className="font-medium text-sm">Future Value:</span>
                       <span
                         className={cn(
-                          "text-lg font-bold",
+                          "font-bold text-lg",
                           futureValue > 0
                             ? "text-blue-600"
                             : "text-muted-foreground",
@@ -355,11 +355,11 @@ function MultiplierCalculatorContent() {
                   </>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Multiplier:</span>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-medium text-sm">Multiplier:</span>
                       <span
                         className={cn(
-                          "text-lg font-bold",
+                          "font-bold text-lg",
                           calculatedMultiplier !== null
                             ? "text-green-600"
                             : "text-muted-foreground",
@@ -371,10 +371,10 @@ function MultiplierCalculatorContent() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Growth:</span>
+                      <span className="font-medium text-sm">Growth:</span>
                       <span
                         className={cn(
-                          "text-lg font-bold",
+                          "font-bold text-lg",
                           calculatedMultiplier !== null
                             ? "text-blue-600"
                             : "text-muted-foreground",
@@ -393,7 +393,7 @@ function MultiplierCalculatorContent() {
 
           <div className="w-full">
             <div className="items-center pb-0">
-              <h3 className="text-lg font-semibold">
+              <h3 className="font-semibold text-lg">
                 {mode === "time" ? "Growth Breakdown" : "Investment Breakdown"}
               </h3>
             </div>
@@ -417,7 +417,7 @@ function MultiplierCalculatorContent() {
               </ChartContainer>
 
               {chartData.length > 0 && (
-                <div className="flex flex-col gap-2 mt-4">
+                <div className="mt-4 flex flex-col gap-2">
                   {chartData.map((item) => (
                     <div
                       key={item.name}
@@ -425,14 +425,14 @@ function MultiplierCalculatorContent() {
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-4 h-4 rounded-sm"
+                          className="h-4 w-4 rounded-sm"
                           style={{ backgroundColor: item.fill }}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="font-medium text-sm">
                           {item.name.trim()}
                         </span>
                       </div>
-                      <span className="text-sm font-bold">
+                      <span className="font-bold text-sm">
                         ₹
                         {item.value.toLocaleString("en-IN", {
                           maximumFractionDigits: 2,
@@ -454,9 +454,9 @@ export default function MultiplierCalculator() {
   return (
     <Suspense
       fallback={
-        <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-          <main className="flex flex-col gap-[32px] row-start-2 items-center w-full">
-            <h1 className="text-4xl font-bold">Multiplier Calculator</h1>
+        <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
+          <main className="row-start-2 flex w-full flex-col items-center gap-[32px]">
+            <h1 className="font-bold text-4xl">Multiplier Calculator</h1>
             <p className="text-muted-foreground">Loading...</p>
           </main>
         </div>
