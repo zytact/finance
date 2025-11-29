@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 type Frequency = "monthly" | "weekly" | "quarterly" | "yearly" | "15-days";
@@ -41,6 +42,9 @@ function GoalCalculatorContent() {
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [inflationRate, setInflationRate] = useState<string>("");
   const [requiredSip, setRequiredSip] = useState<number | null>(null);
+  const [isStepUpEnabled, setIsStepUpEnabled] = useState<boolean>(false);
+  const [stepUpFrequency, setStepUpFrequency] = useState<Frequency>("yearly");
+  const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
   const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
@@ -49,6 +53,9 @@ function GoalCalculatorContent() {
     const dur = searchParams.get("duration");
     const ret = searchParams.get("return");
     const inf = searchParams.get("inflation");
+    const stepUp = searchParams.get("stepUp");
+    const stepUpFreq = searchParams.get("stepUpFreq") as Frequency;
+    const stepUpPerc = searchParams.get("stepUpPerc");
 
     if (goal && !Number.isNaN(Number(goal)) && Number(goal) > 0) {
       setGoalAmount(goal);
@@ -64,6 +71,19 @@ function GoalCalculatorContent() {
     }
     if (inf && !Number.isNaN(Number(inf)) && Number(inf) >= 0) {
       setInflationRate(inf);
+    }
+    if (stepUp) {
+      setIsStepUpEnabled(stepUp === "true");
+    }
+    if (stepUpFreq && frequencyOptions.some((f) => f.value === stepUpFreq)) {
+      setStepUpFrequency(stepUpFreq);
+    }
+    if (
+      stepUpPerc &&
+      !Number.isNaN(Number(stepUpPerc)) &&
+      Number(stepUpPerc) >= 0
+    ) {
+      setStepUpPercentage(stepUpPerc);
     }
 
     setInitialized(true);
@@ -103,18 +123,63 @@ function GoalCalculatorContent() {
     if (goal > 0 && time > 0 && rate >= 0 && inflation >= 0) {
       try {
         const adjustedGoal = goal * (1 + inflation / 100) ** time;
-
         const periodicRate = rate / 100 / periodsPerYear;
         const totalPeriods = time * periodsPerYear;
 
         let calculatedSip: number;
 
-        if (periodicRate === 0) {
-          calculatedSip = adjustedGoal / totalPeriods;
+        if (isStepUpEnabled) {
+          const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+          const stepUpPeriodsPerYear =
+            frequencyOptions.find((f) => f.value === stepUpFrequency)
+              ?.periodsPerYear || 1;
+
+          const stepUpInterval = Math.round(
+            periodsPerYear / stepUpPeriodsPerYear,
+          );
+
+          let low = 0;
+          let high = adjustedGoal / totalPeriods;
+          let iterations = 0;
+          const maxIterations = 100;
+          const tolerance = 0.01;
+
+          while (iterations < maxIterations && high - low > tolerance) {
+            const mid = (low + high) / 2;
+            let futureValue = 0;
+            let currentAmount = mid;
+
+            for (let period = 1; period <= totalPeriods; period++) {
+              if (periodicRate === 0) {
+                futureValue += currentAmount;
+              } else {
+                const futureValueOfPayment =
+                  currentAmount * (1 + periodicRate) ** (totalPeriods - period);
+                futureValue += futureValueOfPayment;
+              }
+
+              if (period % stepUpInterval === 0 && period < totalPeriods) {
+                currentAmount *= 1 + stepUpPercent;
+              }
+            }
+
+            if (futureValue < adjustedGoal) {
+              low = mid;
+            } else {
+              high = mid;
+            }
+            iterations++;
+          }
+
+          calculatedSip = (low + high) / 2;
         } else {
-          calculatedSip =
-            (adjustedGoal * periodicRate) /
-            ((1 + periodicRate) ** totalPeriods - 1);
+          if (periodicRate === 0) {
+            calculatedSip = adjustedGoal / totalPeriods;
+          } else {
+            calculatedSip =
+              (adjustedGoal * periodicRate) /
+              ((1 + periodicRate) ** totalPeriods - 1);
+          }
         }
 
         if (Number.isFinite(calculatedSip) && calculatedSip > 0) {
@@ -128,7 +193,16 @@ function GoalCalculatorContent() {
     } else {
       setRequiredSip(null);
     }
-  }, [goalAmount, frequency, duration, expectedReturn, inflationRate]);
+  }, [
+    goalAmount,
+    frequency,
+    duration,
+    expectedReturn,
+    inflationRate,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+  ]);
 
   useEffect(() => {
     if (!initialized) return;
@@ -138,6 +212,9 @@ function GoalCalculatorContent() {
       duration: duration,
       return: expectedReturn,
       inflation: inflationRate,
+      stepUp: isStepUpEnabled.toString(),
+      stepUpFreq: stepUpFrequency,
+      stepUpPerc: stepUpPercentage,
     });
   }, [
     goalAmount,
@@ -145,6 +222,9 @@ function GoalCalculatorContent() {
     duration,
     expectedReturn,
     inflationRate,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
     updateSearchParams,
     initialized,
   ]);
@@ -160,7 +240,32 @@ function GoalCalculatorContent() {
       return { totalInvested: 0, goalAmount: 0, inflationAdjustedGoal: 0 };
     }
 
-    const totalInvested = requiredSip * periodsPerYear * time;
+    let totalInvested: number;
+
+    if (isStepUpEnabled) {
+      const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+      const stepUpPeriodsPerYear =
+        frequencyOptions.find((f) => f.value === stepUpFrequency)
+          ?.periodsPerYear || 1;
+
+      totalInvested = 0;
+      let currentAmount = requiredSip;
+      const totalPeriods = time * periodsPerYear;
+
+      for (let period = 1; period <= totalPeriods; period++) {
+        totalInvested += currentAmount;
+
+        if (
+          period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
+          period < totalPeriods
+        ) {
+          currentAmount *= 1 + stepUpPercent;
+        }
+      }
+    } else {
+      totalInvested = requiredSip * periodsPerYear * time;
+    }
+
     const inflationAdjustedGoal =
       goal > 0 && inflation >= 0 ? goal * (1 + inflation / 100) ** time : goal;
 
@@ -169,7 +274,16 @@ function GoalCalculatorContent() {
       goalAmount: goal,
       inflationAdjustedGoal,
     };
-  }, [requiredSip, frequency, duration, goalAmount, inflationRate]);
+  }, [
+    requiredSip,
+    frequency,
+    duration,
+    goalAmount,
+    inflationRate,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+  ]);
 
   const chartData = useMemo(() => {
     if (numbers.totalInvested <= 0 && numbers.inflationAdjustedGoal <= 0)
@@ -310,11 +424,92 @@ function GoalCalculatorContent() {
                 />
               </div>
 
+              <div className="border-t pt-2">
+                <div className="mb-4 flex items-center justify-between">
+                  <label htmlFor="stepUpToggle" className="font-medium text-sm">
+                    Enable Step-up SIP
+                  </label>
+                  <Switch
+                    id="stepUpToggle"
+                    checked={isStepUpEnabled}
+                    onCheckedChange={setIsStepUpEnabled}
+                  />
+                </div>
+
+                {isStepUpEnabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="stepUpFrequency"
+                        className="mb-1 block font-medium text-sm"
+                      >
+                        Step-up Frequency
+                      </label>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <span>
+                              {frequencyOptions.find(
+                                (f) => f.value === stepUpFrequency,
+                              )?.label || "Yearly"}
+                            </span>
+                            <ChevronDown className="h-4 w-4 opacity-50" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-full">
+                          <DropdownMenuLabel>
+                            Select Step-up Frequency
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            value={stepUpFrequency}
+                            onValueChange={(value) =>
+                              setStepUpFrequency(value as Frequency)
+                            }
+                          >
+                            {frequencyOptions.map((option) => (
+                              <DropdownMenuRadioItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="stepUpPercentage"
+                        className="mb-1 block font-medium text-sm"
+                      >
+                        Step-up Percentage (%)
+                      </label>
+                      <input
+                        id="stepUpPercentage"
+                        type="number"
+                        value={stepUpPercentage}
+                        onChange={(e) => setStepUpPercentage(e.target.value)}
+                        placeholder="10"
+                        className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="border-t pt-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm">
-                      Required SIP Amount:
+                      {isStepUpEnabled
+                        ? "Starting SIP Amount:"
+                        : "Required SIP Amount:"}
                     </span>
                     <span
                       className={cn(
@@ -329,6 +524,16 @@ function GoalCalculatorContent() {
                         : "Enter values above"}
                     </span>
                   </div>
+                  {isStepUpEnabled && requiredSip !== null && (
+                    <p className="text-muted-foreground text-xs">
+                      This is the starting SIP amount. It will increase by{" "}
+                      {stepUpPercentage}%{" "}
+                      {frequencyOptions
+                        .find((f) => f.value === stepUpFrequency)
+                        ?.label.toLowerCase()}
+                      .
+                    </p>
+                  )}
                   {numbers.inflationAdjustedGoal > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground text-xs">
