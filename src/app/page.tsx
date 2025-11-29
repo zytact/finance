@@ -32,6 +32,11 @@ export default function Home() {
                 Multiplier Calculator
               </Button>
             </Link>
+            <Link href="/goal" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto">
+                Goal Calculator
+              </Button>
+            </Link>
           </div>
         </main>
       </div>
