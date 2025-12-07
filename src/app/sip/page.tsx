@@ -291,8 +291,8 @@ function SIPCalculatorContent() {
         </p>
 
         <div className="grid w-full max-w-4xl gap-12 md:grid-cols-2">
-          <div className="w-full rounded-lg border bg-card p-6 shadow-sm">
-            <div className="space-y-4">
+          <div className="w-full rounded-lg border bg-card p-6 shadow-xs">
+            <div className="flex flex-col gap-y-4">
               <div>
                 <label
                   htmlFor="sipAmount"
@@ -324,7 +324,7 @@ function SIPCalculatorContent() {
                       className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <span>{selectedFrequencyLabel}</span>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
+                      <ChevronDown className="h-4 w-4 text-current/50" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-full">
@@ -436,7 +436,7 @@ function SIPCalculatorContent() {
                 </div>
 
                 {isStepUpEnabled && (
-                  <div className="space-y-4">
+                  <div className="flex flex-col gap-y-4">
                     <div>
                       <label
                         htmlFor="stepUpFrequency"
@@ -455,7 +455,7 @@ function SIPCalculatorContent() {
                                 (f) => f.value === stepUpFrequency,
                               )?.label || "Yearly"}
                             </span>
-                            <ChevronDown className="h-4 w-4 opacity-50" />
+                            <ChevronDown className="h-4 w-4 text-current/50" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-full">
@@ -554,7 +554,7 @@ function SIPCalculatorContent() {
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="h-4 w-4 rounded-sm"
+                          className="h-4 w-4 rounded-xs"
                           style={{ backgroundColor: item.fill }}
                         />
                         <span className="font-medium text-sm">
