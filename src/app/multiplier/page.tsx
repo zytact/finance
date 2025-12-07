@@ -197,8 +197,8 @@ function MultiplierCalculatorContent() {
         </p>
 
         <div className="grid w-full max-w-4xl gap-12 md:grid-cols-2">
-          <div className="w-full rounded-lg border bg-card p-6 shadow-sm">
-            <div className="space-y-4">
+          <div className="w-full rounded-lg border bg-card p-6 shadow-xs">
+            <div className="gap-y-4">
               <div>
                 <label
                   htmlFor="mode"
@@ -216,7 +216,7 @@ function MultiplierCalculatorContent() {
                         {modeOptions.find((m) => m.value === mode)?.label ||
                           "Calculate Time to Reach Multiplier"}
                       </span>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
+                      <ChevronDown className="h-4 w-4 text-current/50" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-full">
@@ -425,7 +425,7 @@ function MultiplierCalculatorContent() {
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="h-4 w-4 rounded-sm"
+                          className="h-4 w-4 rounded-xs"
                           style={{ backgroundColor: item.fill }}
                         />
                         <span className="font-medium text-sm">
