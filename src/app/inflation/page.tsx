@@ -21,6 +21,7 @@ function InflationCalculatorContent() {
   const [futurePurchasingPower, setFuturePurchasingPower] = useState<
     number | null
   >(null);
+  const [futureAmount, setFutureAmount] = useState<number | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
@@ -60,7 +61,9 @@ function InflationCalculatorContent() {
       const currentSearchString = searchParams.toString();
 
       if (newSearchString !== currentSearchString) {
-        const newUrl = `${window.location.pathname}${newSearchString ? `?${newSearchString}` : ""}`;
+        const newUrl = `${window.location.pathname}${
+          newSearchString ? `?${newSearchString}` : ""
+        }`;
         window.history.replaceState(null, "", newUrl);
       }
     },
@@ -75,8 +78,11 @@ function InflationCalculatorContent() {
     if (principal > 0 && time > 0 && rate >= 0) {
       const calculatedValue = principal / (1 + rate / 100) ** time;
       setFuturePurchasingPower(calculatedValue);
+      const futureValue = principal * (1 + rate / 100) ** time;
+      setFutureAmount(futureValue);
     } else {
       setFuturePurchasingPower(null);
+      setFutureAmount(null);
     }
   }, [presentAmount, inflationRate, duration]);
 
@@ -92,17 +98,18 @@ function InflationCalculatorContent() {
   const numbers = useMemo(() => {
     const principal = parseFloat(presentAmount);
     const future = futurePurchasingPower || 0;
+    const futureAmt = futureAmount || 0;
     if (
       !Number.isFinite(principal) ||
       principal <= 0 ||
       !Number.isFinite(future) ||
       future <= 0
     ) {
-      return { principal: 0, future: 0, loss: 0 };
+      return { principal: 0, future: 0, loss: 0, futureAmount: 0 };
     }
     const loss = Math.max(principal - future, 0);
-    return { principal, future, loss };
-  }, [presentAmount, futurePurchasingPower]);
+    return { principal, future, loss, futureAmount: futureAmt };
+  }, [presentAmount, futurePurchasingPower, futureAmount]);
 
   const chartData = useMemo(() => {
     if (numbers.principal <= 0 && numbers.future <= 0)
@@ -120,7 +127,10 @@ function InflationCalculatorContent() {
   }, [numbers]);
 
   const chartConfig: ChartConfig = {
-    remaining: { label: "Remaining Purchasing Power", color: "var(--chart-1)" },
+    remaining: {
+      label: "Remaining Purchasing Power",
+      color: "var(--chart-1)",
+    },
     loss: { label: "Lost to Inflation", color: "var(--chart-2)" },
   };
 
@@ -209,7 +219,27 @@ function InflationCalculatorContent() {
                     )}
                   >
                     {futurePurchasingPower !== null
-                      ? `₹${futurePurchasingPower.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+                      ? `₹${futurePurchasingPower.toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}`
+                      : "Enter values above"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">
+                    Amount Required in {parseFloat(duration || "0")} years:
+                  </span>
+                  <span
+                    className={cn(
+                      "font-bold text-lg",
+                      futureAmount !== null ? "" : "text-muted-foreground",
+                    )}
+                  >
+                    {futureAmount !== null
+                      ? `₹${futureAmount.toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}`
                       : "Enter values above"}
                   </span>
                 </div>
@@ -263,7 +293,9 @@ function InflationCalculatorContent() {
                       <div className="flex items-center gap-2">
                         <div
                           className="h-4 w-4 rounded-xs"
-                          style={{ backgroundColor: item.fill }}
+                          style={{
+                            backgroundColor: item.fill,
+                          }}
                         />
                         <span className="font-medium text-sm">{item.name}</span>
                       </div>
