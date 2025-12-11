@@ -228,7 +228,7 @@ function InflationCalculatorContent() {
 
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm">
-                    Amount Required in {parseFloat(duration || "0")}:
+                    Amount Required in {parseFloat(duration || "0")} years:
                   </span>
                   <span
                     className={cn(
