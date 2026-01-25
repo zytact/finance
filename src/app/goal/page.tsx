@@ -134,8 +134,9 @@ function GoalCalculatorContent() {
             frequencyOptions.find((f) => f.value === stepUpFrequency)
               ?.periodsPerYear || 1;
 
-          const stepUpInterval = Math.round(
-            periodsPerYear / stepUpPeriodsPerYear,
+          const stepUpInterval = Math.max(
+            1,
+            Math.round(periodsPerYear / stepUpPeriodsPerYear),
           );
 
           let low = 0;
@@ -248,6 +249,11 @@ function GoalCalculatorContent() {
         frequencyOptions.find((f) => f.value === stepUpFrequency)
           ?.periodsPerYear || 1;
 
+      const stepUpInterval = Math.max(
+        1,
+        Math.round(periodsPerYear / stepUpPeriodsPerYear),
+      );
+
       totalInvested = 0;
       let currentAmount = requiredSip;
       const totalPeriods = time * periodsPerYear;
@@ -255,10 +261,7 @@ function GoalCalculatorContent() {
       for (let period = 1; period <= totalPeriods; period++) {
         totalInvested += currentAmount;
 
-        if (
-          period % Math.round(periodsPerYear / stepUpPeriodsPerYear) === 0 &&
-          period < totalPeriods
-        ) {
+        if (period % stepUpInterval === 0 && period < totalPeriods) {
           currentAmount *= 1 + stepUpPercent;
         }
       }
@@ -302,6 +305,53 @@ function GoalCalculatorContent() {
     invested: { label: "Invested", color: "var(--chart-1)" },
     returns: { label: "Returns", color: "var(--chart-2)" },
   };
+
+  const yearlySipAmounts = useMemo(() => {
+    const time = parseFloat(duration);
+    const periodsPerYear =
+      frequencyOptions.find((f) => f.value === frequency)?.periodsPerYear || 12;
+
+    if (!isStepUpEnabled || !requiredSip || requiredSip <= 0 || time <= 0) {
+      return [];
+    }
+
+    const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+    const stepUpPeriodsPerYear =
+      frequencyOptions.find((f) => f.value === stepUpFrequency)
+        ?.periodsPerYear || 1;
+
+    const stepUpInterval = Math.max(
+      1,
+      Math.round(periodsPerYear / stepUpPeriodsPerYear),
+    );
+
+    const yearlyAmounts: Array<{ year: number; amount: number }> = [];
+    let currentAmount = requiredSip;
+    const totalPeriods = time * periodsPerYear;
+
+    for (let period = 1; period <= totalPeriods; period++) {
+      const yearIndex = Math.floor((period - 1) / periodsPerYear);
+
+      // Record the SIP amount at the start of each year
+      if (period === 1 || (period - 1) % periodsPerYear === 0) {
+        yearlyAmounts.push({ year: yearIndex + 1, amount: currentAmount });
+      }
+
+      // Apply step-up after the appropriate number of periods
+      if (period % stepUpInterval === 0 && period < totalPeriods) {
+        currentAmount *= 1 + stepUpPercent;
+      }
+    }
+
+    return yearlyAmounts;
+  }, [
+    requiredSip,
+    duration,
+    frequency,
+    isStepUpEnabled,
+    stepUpFrequency,
+    stepUpPercentage,
+  ]);
 
   const selectedFrequencyLabel =
     frequencyOptions.find((f) => f.value === frequency)?.label || "Monthly";
@@ -602,6 +652,40 @@ function GoalCalculatorContent() {
                 </div>
               )}
             </div>
+
+            {isStepUpEnabled && yearlySipAmounts.length > 0 && (
+              <div className="mt-6">
+                <h3 className="mb-3 font-semibold text-lg">
+                  SIP Timeline (Per Installment)
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {yearlySipAmounts.map((item) => {
+                    const ordinalSuffix = (n: number) => {
+                      const s = ["th", "st", "nd", "rd"];
+                      const v = n % 100;
+                      return s[(v - 20) % 10] || s[v] || s[0];
+                    };
+                    return (
+                      <div
+                        key={item.year}
+                        className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                      >
+                        <span className="font-medium text-sm">
+                          {item.year}
+                          {ordinalSuffix(item.year)} Year
+                        </span>
+                        <span className="font-bold text-sm">
+                          ₹
+                          {item.amount.toLocaleString("en-IN", {
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
