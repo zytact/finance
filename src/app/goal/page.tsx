@@ -50,6 +50,30 @@ function GoalCalculatorContent() {
   const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
   const [initialized, setInitialized] = useState<boolean>(false);
 
+  // Get valid step-up frequency options (must be <= investment frequency)
+  const validStepUpFrequencies = useMemo(() => {
+    const investmentPeriodsPerYear =
+      frequencyOptions.find((f) => f.value === frequency)?.periodsPerYear || 12;
+    return frequencyOptions.filter(
+      (f) => f.periodsPerYear <= investmentPeriodsPerYear,
+    );
+  }, [frequency]);
+
+  // Auto-correct step-up frequency if it becomes invalid
+  useEffect(() => {
+    if (!initialized) return;
+    const currentStepUpPeriodsPerYear =
+      frequencyOptions.find((f) => f.value === stepUpFrequency)
+        ?.periodsPerYear || 1;
+    const investmentPeriodsPerYear =
+      frequencyOptions.find((f) => f.value === frequency)?.periodsPerYear || 12;
+
+    // If step-up is more frequent than investment, clamp it
+    if (currentStepUpPeriodsPerYear > investmentPeriodsPerYear) {
+      setStepUpFrequency(frequency);
+    }
+  }, [frequency, stepUpFrequency, initialized]);
+
   useEffect(() => {
     const goal = searchParams.get("goal");
     const freq = searchParams.get("frequency") as Frequency;
@@ -137,6 +161,12 @@ function GoalCalculatorContent() {
 
         if (isStepUpEnabled) {
           const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+          // Treat invalid stepUpPercentage as calculation abort
+          if (!Number.isFinite(stepUpPercent) || stepUpPercent < 0) {
+            setRequiredSip(null);
+            return;
+          }
+
           const stepUpPeriodsPerYear =
             frequencyOptions.find((f) => f.value === stepUpFrequency)
               ?.periodsPerYear || 1;
@@ -263,6 +293,11 @@ function GoalCalculatorContent() {
 
     if (isStepUpEnabled) {
       const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+      // If stepUpPercent is invalid, treat as 0 invested
+      if (!Number.isFinite(stepUpPercent) || stepUpPercent < 0) {
+        return { totalInvested: 0, goalAmount: 0, inflationAdjustedGoal: 0 };
+      }
+
       const stepUpPeriodsPerYear =
         frequencyOptions.find((f) => f.value === stepUpFrequency)
           ?.periodsPerYear || 1;
@@ -324,7 +359,28 @@ function GoalCalculatorContent() {
     returns: { label: "Returns", color: "var(--chart-2)" },
   };
 
-  const yearlySipAmounts = useMemo(() => {
+  // Detect unreasonable step-up configuration
+  const hasUnreasonableStepUp = useMemo(() => {
+    if (!isStepUpEnabled) return false;
+
+    // Check 1: Required SIP is below ₹1 (impractical)
+    if (requiredSip !== null && requiredSip > 0 && requiredSip < 1) {
+      return true;
+    }
+
+    // Check 2: totalInvested is non-finite or explodes relative to goal
+    if (
+      numbers.totalInvested > 0 &&
+      (!Number.isFinite(numbers.totalInvested) ||
+        numbers.totalInvested > numbers.inflationAdjustedGoal * 1000)
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [isStepUpEnabled, requiredSip, numbers]);
+
+  const stepUpTimeline = useMemo(() => {
     const time = parseFloat(duration);
     const periodsPerYear =
       frequencyOptions.find((f) => f.value === frequency)?.periodsPerYear || 12;
@@ -334,6 +390,11 @@ function GoalCalculatorContent() {
     }
 
     const stepUpPercent = parseFloat(stepUpPercentage) / 100;
+    // Treat invalid or negative stepUpPercentage as invalid
+    if (!Number.isFinite(stepUpPercent) || stepUpPercent < 0) {
+      return [];
+    }
+
     const stepUpPeriodsPerYear =
       frequencyOptions.find((f) => f.value === stepUpFrequency)
         ?.periodsPerYear || 1;
@@ -343,16 +404,16 @@ function GoalCalculatorContent() {
       Math.round(periodsPerYear / stepUpPeriodsPerYear),
     );
 
-    const yearlyAmounts: Array<{ year: number; amount: number }> = [];
+    const timeline: Array<{ index: number; amount: number }> = [];
     let currentAmount = requiredSip;
     const totalPeriods = time * periodsPerYear;
+    let segmentIndex = 1;
 
     for (let period = 1; period <= totalPeriods; period++) {
-      const yearIndex = Math.floor((period - 1) / periodsPerYear);
-
-      // Record the SIP amount at the start of each year
-      if (period === 1 || (period - 1) % periodsPerYear === 0) {
-        yearlyAmounts.push({ year: yearIndex + 1, amount: currentAmount });
+      // Record the SIP amount at the start of each step-up segment
+      if (period === 1 || (period - 1) % stepUpInterval === 0) {
+        timeline.push({ index: segmentIndex, amount: currentAmount });
+        segmentIndex++;
       }
 
       // Apply step-up after the appropriate number of periods
@@ -361,7 +422,7 @@ function GoalCalculatorContent() {
       }
     }
 
-    return yearlyAmounts;
+    return timeline;
   }, [
     requiredSip,
     duration,
@@ -578,7 +639,7 @@ function GoalCalculatorContent() {
                               setStepUpFrequency(value as Frequency)
                             }
                           >
-                            {frequencyOptions.map((option) => (
+                            {validStepUpFrequencies.map((option) => (
                               <DropdownMenuRadioItem
                                 key={option.value}
                                 value={option.value}
@@ -589,6 +650,9 @@ function GoalCalculatorContent() {
                           </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      <p className="mt-1 text-muted-foreground text-xs">
+                        Step-up frequency cannot exceed investment frequency
+                      </p>
                     </div>
 
                     <div>
@@ -613,33 +677,45 @@ function GoalCalculatorContent() {
 
               <div className="border-t pt-4">
                 <div className="gap-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">
-                      {isStepUpEnabled
-                        ? "Starting SIP Amount:"
-                        : "Required SIP Amount:"}
-                    </span>
-                    <span
-                      className={cn(
-                        "font-bold text-lg",
-                        requiredSip !== null
-                          ? "text-primary"
-                          : "text-muted-foreground",
+                  {!hasUnreasonableStepUp && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">
+                          {isStepUpEnabled
+                            ? "Starting SIP Amount:"
+                            : "Required SIP Amount:"}
+                        </span>
+                        <span
+                          className={cn(
+                            "font-bold text-lg",
+                            requiredSip !== null
+                              ? "text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {requiredSip !== null
+                            ? `₹${requiredSip.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+                            : "Enter values above"}
+                        </span>
+                      </div>
+                      {isStepUpEnabled && requiredSip !== null && (
+                        <p className="text-muted-foreground text-xs">
+                          This is the starting SIP amount. It will increase by{" "}
+                          {stepUpPercentage}%{" "}
+                          {frequencyOptions
+                            .find((f) => f.value === stepUpFrequency)
+                            ?.label.toLowerCase()}
+                          .
+                        </p>
                       )}
-                    >
-                      {requiredSip !== null
-                        ? `₹${requiredSip.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
-                        : "Enter values above"}
-                    </span>
-                  </div>
-                  {isStepUpEnabled && requiredSip !== null && (
-                    <p className="text-muted-foreground text-xs">
-                      This is the starting SIP amount. It will increase by{" "}
-                      {stepUpPercentage}%{" "}
-                      {frequencyOptions
-                        .find((f) => f.value === stepUpFrequency)
-                        ?.label.toLowerCase()}
-                      .
+                    </>
+                  )}
+                  {hasUnreasonableStepUp && (
+                    <p className="text-destructive text-sm">
+                      ⚠️ Your step-up settings result in unrealistic calculations
+                      (starting SIP below ₹1 or excessively large totals).
+                      Please reduce step-up percentage, choose less frequent
+                      step-up, or adjust duration/goal.
                     </p>
                   )}
                   {numbers.inflationAdjustedGoal > 0 && (
@@ -661,88 +737,210 @@ function GoalCalculatorContent() {
           </div>
 
           <div className="w-full">
-            <div className="items-center pb-0">
-              <h3 className="font-semibold text-lg">Investment Breakdown</h3>
-            </div>
-            <div className="flex-1 pb-6">
-              <ChartContainer
-                config={chartConfig}
-                className="mx-auto aspect-square max-h-[280px]"
-              >
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="name"
-                    stroke="0"
-                  />
-                </PieChart>
-              </ChartContainer>
-
-              {chartData.length > 0 && (
-                <div className="mt-4 flex flex-col gap-2">
-                  {chartData.map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-4 w-4 rounded-xs"
-                          style={{ backgroundColor: item.fill }}
-                        />
-                        <span className="font-medium text-sm">
-                          {item.name.trim()}
-                        </span>
-                      </div>
-                      <span className="font-bold text-sm">
-                        ₹
-                        {item.value.toLocaleString("en-IN", {
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {isStepUpEnabled && yearlySipAmounts.length > 0 && (
-              <div className="mt-6">
-                <h3 className="mb-3 font-semibold text-lg">
-                  SIP Timeline (Per Installment)
+            {hasUnreasonableStepUp ? (
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-destructive/50 bg-destructive/5 p-8 text-center">
+                <div className="mb-4 text-4xl">⚠️</div>
+                <h3 className="mb-2 font-semibold text-destructive text-lg">
+                  Unreasonable Step-up Configuration
                 </h3>
-                <div className="flex flex-col gap-2">
-                  {yearlySipAmounts.map((item) => {
-                    const ordinalSuffix = (n: number) => {
-                      const s = ["th", "st", "nd", "rd"];
-                      const v = n % 100;
-                      return s[(v - 20) % 10] || s[v] || s[0];
-                    };
-                    return (
-                      <div
-                        key={item.year}
-                        className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
-                      >
-                        <span className="font-medium text-sm">
-                          {item.year}
-                          {ordinalSuffix(item.year)} Year
-                        </span>
-                        <span className="font-bold text-sm">
-                          ₹
-                          {item.amount.toLocaleString("en-IN", {
-                            maximumFractionDigits: 2,
-                          })}
-                        </span>
-                      </div>
-                    );
-                  })}
+                <p className="mb-4 max-w-md text-muted-foreground text-sm">
+                  Your step-up settings result in unrealistic calculations
+                  (starting SIP below ₹1 or excessively large totals due to
+                  aggressive step-ups), which makes the breakdown unreliable.
+                </p>
+                <div className="text-muted-foreground text-sm">
+                  <p className="font-medium">To fix this:</p>
+                  <ul className="mt-2 list-inside list-disc text-left">
+                    <li>Reduce the step-up percentage</li>
+                    <li>
+                      Choose a less frequent step-up (e.g., Quarterly or Yearly)
+                    </li>
+                    <li>Increase the investment duration</li>
+                    <li>Reduce the goal amount</li>
+                  </ul>
                 </div>
               </div>
+            ) : (
+              <>
+                <div className="items-center pb-0">
+                  <h3 className="font-semibold text-lg">
+                    Investment Breakdown
+                  </h3>
+                </div>
+                <div className="flex-1 pb-6">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="mx-auto aspect-square max-h-[280px]"
+                  >
+                    <PieChart>
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent />}
+                      />
+                      <Pie
+                        data={chartData}
+                        dataKey="value"
+                        nameKey="name"
+                        stroke="0"
+                      />
+                    </PieChart>
+                  </ChartContainer>
+
+                  {chartData.length > 0 && (
+                    <div className="mt-4 flex flex-col gap-2">
+                      {chartData.map((item) => (
+                        <div
+                          key={item.name}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-4 w-4 rounded-xs"
+                              style={{ backgroundColor: item.fill }}
+                            />
+                            <span className="font-medium text-sm">
+                              {item.name.trim()}
+                            </span>
+                          </div>
+                          <span className="font-bold text-sm">
+                            ₹
+                            {item.value.toLocaleString("en-IN", {
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {isStepUpEnabled && stepUpTimeline.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="mb-3 font-semibold text-lg">
+                      SIP Timeline (Per Step-up Period)
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                      {(() => {
+                        const ordinalSuffix = (n: number) => {
+                          const s = ["th", "st", "nd", "rd"];
+                          const v = n % 100;
+                          return s[(v - 20) % 10] || s[v] || s[0];
+                        };
+
+                        const getUnitLabel = (freq: Frequency): string => {
+                          switch (freq) {
+                            case "yearly":
+                              return "Year";
+                            case "quarterly":
+                              return "Quarter";
+                            case "monthly":
+                              return "Month";
+                            case "weekly":
+                              return "Week";
+                            case "15-days":
+                              return "15 Days";
+                            default:
+                              return "Period";
+                          }
+                        };
+
+                        const getUnitPluralLabel = (
+                          freq: Frequency,
+                        ): string => {
+                          switch (freq) {
+                            case "yearly":
+                              return "years";
+                            case "quarterly":
+                              return "quarters";
+                            case "monthly":
+                              return "months";
+                            case "weekly":
+                              return "weeks";
+                            case "15-days":
+                              return "periods";
+                            default:
+                              return "periods";
+                          }
+                        };
+
+                        const unit = getUnitLabel(stepUpFrequency);
+                        const unitPlural = getUnitPluralLabel(stepUpFrequency);
+                        const total = stepUpTimeline.length;
+
+                        if (total <= 10) {
+                          // Show all entries
+                          return stepUpTimeline.map((item) => (
+                            <div
+                              key={item.index}
+                              className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                            >
+                              <span className="font-medium text-sm">
+                                {item.index}
+                                {ordinalSuffix(item.index)} {unit}
+                              </span>
+                              <span className="font-bold text-sm">
+                                ₹
+                                {item.amount.toLocaleString("en-IN", {
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
+                            </div>
+                          ));
+                        }
+
+                        // Show first 4 + divider + last 4
+                        const firstFour = stepUpTimeline.slice(0, 4);
+                        const lastFour = stepUpTimeline.slice(-4);
+                        const hiddenCount = total - 8;
+
+                        return (
+                          <>
+                            {firstFour.map((item) => (
+                              <div
+                                key={item.index}
+                                className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                              >
+                                <span className="font-medium text-sm">
+                                  {item.index}
+                                  {ordinalSuffix(item.index)} {unit}
+                                </span>
+                                <span className="font-bold text-sm">
+                                  ₹
+                                  {item.amount.toLocaleString("en-IN", {
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </span>
+                              </div>
+                            ))}
+                            <div className="flex items-center justify-center rounded-md border border-dashed bg-muted/30 px-3 py-2">
+                              <span className="text-muted-foreground text-sm">
+                                {hiddenCount} {unitPlural} not shown
+                              </span>
+                            </div>
+                            {lastFour.map((item) => (
+                              <div
+                                key={item.index}
+                                className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                              >
+                                <span className="font-medium text-sm">
+                                  {item.index}
+                                  {ordinalSuffix(item.index)} {unit}
+                                </span>
+                                <span className="font-bold text-sm">
+                                  ₹
+                                  {item.amount.toLocaleString("en-IN", {
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </span>
+                              </div>
+                            ))}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
