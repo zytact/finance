@@ -42,6 +42,9 @@ function GoalCalculatorContent() {
   const [expectedReturn, setExpectedReturn] = useState<string>("");
   const [inflationRate, setInflationRate] = useState<string>("");
   const [requiredSip, setRequiredSip] = useState<number | null>(null);
+  const [paymentTiming, setPaymentTiming] = useState<"beginning" | "end">(
+    "end",
+  );
   const [isStepUpEnabled, setIsStepUpEnabled] = useState<boolean>(false);
   const [stepUpFrequency, setStepUpFrequency] = useState<Frequency>("yearly");
   const [stepUpPercentage, setStepUpPercentage] = useState<string>("10");
@@ -53,6 +56,7 @@ function GoalCalculatorContent() {
     const dur = searchParams.get("duration");
     const ret = searchParams.get("return");
     const inf = searchParams.get("inflation");
+    const timing = searchParams.get("timing") as "beginning" | "end";
     const stepUp = searchParams.get("stepUp");
     const stepUpFreq = searchParams.get("stepUpFreq") as Frequency;
     const stepUpPerc = searchParams.get("stepUpPerc");
@@ -71,6 +75,9 @@ function GoalCalculatorContent() {
     }
     if (inf && !Number.isNaN(Number(inf)) && Number(inf) >= 0) {
       setInflationRate(inf);
+    }
+    if (timing && (timing === "beginning" || timing === "end")) {
+      setPaymentTiming(timing);
     }
     if (stepUp) {
       setIsStepUpEnabled(stepUp === "true");
@@ -155,7 +162,11 @@ function GoalCalculatorContent() {
                 futureValue += currentAmount;
               } else {
                 const futureValueOfPayment =
-                  currentAmount * (1 + periodicRate) ** (totalPeriods - period);
+                  currentAmount *
+                  (1 + periodicRate) **
+                    (totalPeriods -
+                      period +
+                      (paymentTiming === "beginning" ? 1 : 0));
                 futureValue += futureValueOfPayment;
               }
 
@@ -180,6 +191,10 @@ function GoalCalculatorContent() {
             calculatedSip =
               (adjustedGoal * periodicRate) /
               ((1 + periodicRate) ** totalPeriods - 1);
+
+            if (paymentTiming === "beginning") {
+              calculatedSip /= 1 + periodicRate;
+            }
           }
         }
 
@@ -200,6 +215,7 @@ function GoalCalculatorContent() {
     duration,
     expectedReturn,
     inflationRate,
+    paymentTiming,
     isStepUpEnabled,
     stepUpFrequency,
     stepUpPercentage,
@@ -213,6 +229,7 @@ function GoalCalculatorContent() {
       duration: duration,
       return: expectedReturn,
       inflation: inflationRate,
+      timing: paymentTiming,
       stepUp: isStepUpEnabled.toString(),
       stepUpFreq: stepUpFrequency,
       stepUpPerc: stepUpPercentage,
@@ -223,6 +240,7 @@ function GoalCalculatorContent() {
     duration,
     expectedReturn,
     inflationRate,
+    paymentTiming,
     isStepUpEnabled,
     stepUpFrequency,
     stepUpPercentage,
@@ -472,6 +490,46 @@ function GoalCalculatorContent() {
                   placeholder="6"
                   className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="paymentTimingEnd"
+                  className="mb-1 block font-medium text-sm"
+                >
+                  Payment Timing
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    id="paymentTimingEnd"
+                    type="button"
+                    onClick={() => setPaymentTiming("end")}
+                    className={cn(
+                      "rounded-md border px-3 py-2 text-sm transition-colors",
+                      paymentTiming === "end"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "bg-background hover:bg-accent",
+                    )}
+                  >
+                    End of Period
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTiming("beginning")}
+                    className={cn(
+                      "rounded-md border px-3 py-2 text-sm transition-colors",
+                      paymentTiming === "beginning"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "bg-background hover:bg-accent",
+                    )}
+                  >
+                    Beginning of Period
+                  </button>
+                </div>
+                <p className="mt-1 text-muted-foreground text-xs">
+                  Most SIP calculators use "Beginning of Period" - try switching
+                  if your results don't match
+                </p>
               </div>
 
               <div className="border-t pt-2">
