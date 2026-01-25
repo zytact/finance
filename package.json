@@ -17,7 +17,7 @@
       "biome check",
       "biome format --write"
     ],
-    "*.{json,md,css}": "biome format --write"
+    "*.{json,css}": "biome format --write"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16",

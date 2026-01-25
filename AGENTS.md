@@ -1,14 +1,16 @@
 # Agent Guidelines for Finance Calculator
 
 ## Build/Lint/Test Commands
-- `pnpm dev` - Start dev server with Turbopack
-- `pnpm build` - Build for production
-- `pnpm lint` - Run Biome linter/checker (no auto-fix)
+
+- `pnpm dev` - Start dev server with Turbopack (Do not run this unless told to.)
+- `pnpm build` - Build for production (CI Only. Do not use it.)
+- `pnpm lint` - Run Biome linter/checker (no auto-fix) (Use this to figure out if something is wrong.)
 - `pnpm fix` - Run Biome lint with auto-fix
 - `pnpm format` - Format code with Biome
 - No test suite currently exists
 
 ## Code Style & Formatting
+
 - **Formatter**: Biome with 2-space indentation
 - **Linter**: Biome with Next.js and React recommended rules enabled
 - **TypeScript**: Strict mode enabled, no implicit any
@@ -19,5 +21,6 @@
 - **Naming**: camelCase for variables/functions, PascalCase for components/types, kebab-case for files
 
 ## Pre-commit Hooks
+
 - Husky runs `lint-staged` on commit
 - Auto-runs `biome check` and `biome format --write` on staged files
