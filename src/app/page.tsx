@@ -37,6 +37,11 @@ export default function Home() {
                 Goal Calculator
               </Button>
             </Link>
+            <Link href="/emi" className="w-full">
+              <Button size="lg" className="w-full">
+                Loan/EMI Calculator
+              </Button>
+            </Link>
           </div>
         </main>
       </div>
